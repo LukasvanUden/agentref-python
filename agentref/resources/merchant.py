@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Optional
 
 from .._http import AsyncHttpClient, SyncHttpClient
-from ..types.models import Merchant
+from ..types.models import Merchant, MerchantDomainStatus, StripeConnectSession, UpdateMerchantParams
 
 
 class MerchantResource:
@@ -14,10 +14,34 @@ class MerchantResource:
         envelope = self._http.request("GET", "/merchant")
         return Merchant.model_validate(envelope["data"])
 
-    def domain_status(self) -> Dict[str, Any]:
+    def update(
+        self,
+        *,
+        company_name: Optional[str] = None,
+        website: Optional[str] = None,
+        logo_url: Optional[str] = None,
+        timezone: Optional[str] = None,
+        default_cookie_duration: Optional[int] = None,
+        default_payout_threshold: Optional[int] = None,
+    ) -> Merchant:
+        payload = UpdateMerchantParams(
+            company_name=company_name,
+            website=website,
+            logo_url=logo_url,
+            timezone=timezone,
+            default_cookie_duration=default_cookie_duration,
+            default_payout_threshold=default_payout_threshold,
+        ).model_dump(by_alias=True, exclude_none=True)
+        envelope = self._http.request("PATCH", "/merchant", json=payload)
+        return Merchant.model_validate(envelope["data"])
+
+    def connect_stripe(self) -> StripeConnectSession:
+        envelope = self._http.request("POST", "/merchant/connect-stripe")
+        return StripeConnectSession.model_validate(envelope["data"])
+
+    def domain_status(self) -> MerchantDomainStatus:
         envelope = self._http.request("GET", "/merchant/domain-status")
-        data = envelope.get("data", {})
-        return data if isinstance(data, dict) else {}
+        return MerchantDomainStatus.model_validate(envelope["data"])
 
 
 class AsyncMerchantResource:
@@ -28,7 +52,31 @@ class AsyncMerchantResource:
         envelope = await self._http.request("GET", "/merchant")
         return Merchant.model_validate(envelope["data"])
 
-    async def domain_status(self) -> Dict[str, Any]:
+    async def update(
+        self,
+        *,
+        company_name: Optional[str] = None,
+        website: Optional[str] = None,
+        logo_url: Optional[str] = None,
+        timezone: Optional[str] = None,
+        default_cookie_duration: Optional[int] = None,
+        default_payout_threshold: Optional[int] = None,
+    ) -> Merchant:
+        payload = UpdateMerchantParams(
+            company_name=company_name,
+            website=website,
+            logo_url=logo_url,
+            timezone=timezone,
+            default_cookie_duration=default_cookie_duration,
+            default_payout_threshold=default_payout_threshold,
+        ).model_dump(by_alias=True, exclude_none=True)
+        envelope = await self._http.request("PATCH", "/merchant", json=payload)
+        return Merchant.model_validate(envelope["data"])
+
+    async def connect_stripe(self) -> StripeConnectSession:
+        envelope = await self._http.request("POST", "/merchant/connect-stripe")
+        return StripeConnectSession.model_validate(envelope["data"])
+
+    async def domain_status(self) -> MerchantDomainStatus:
         envelope = await self._http.request("GET", "/merchant/domain-status")
-        data = envelope.get("data", {})
-        return data if isinstance(data, dict) else {}
+        return MerchantDomainStatus.model_validate(envelope["data"])

@@ -35,13 +35,13 @@ async with AsyncAgentRef(api_key="ak_live_...") as client:
 
 ## Resources
 
-- `client.programs`: `list`, `list_all`, `get`, `create`, `update`, `delete`, `stats`, `list_affiliates`, `list_coupons`, `create_coupon`, `create_invite`
+- `client.programs`: `list`, `list_all`, `get`, `create`, `update`, `delete`, `stats`, `list_affiliates`, `list_coupons`, `create_coupon`, `delete_coupon`, `list_invites`, `create_invite`, `update_marketplace`
 - `client.affiliates`: `list`, `get`, `approve`, `block`, `unblock`
 - `client.conversions`: `list`, `stats`, `recent`
-- `client.payouts`: `list`, `list_pending`, `stats`
+- `client.payouts`: `list`, `list_pending`, `stats`, `create`
 - `client.flags`: `list`, `stats`, `resolve`
 - `client.billing`: `current`, `tiers`, `subscribe`
-- `client.merchant`: `get`, `domain_status`
+- `client.merchant`: `get`, `update`, `connect_stripe`, `domain_status`
 
 ## Pagination
 

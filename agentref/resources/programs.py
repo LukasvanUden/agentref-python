@@ -3,7 +3,15 @@ from __future__ import annotations
 from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional
 
 from .._http import AsyncHttpClient, SyncHttpClient
-from ..types.models import Affiliate, Coupon, Invite, PaginatedResponse, Program
+from ..types.models import (
+    Affiliate,
+    Coupon,
+    Invite,
+    PaginatedResponse,
+    Program,
+    ProgramStats,
+    UpdateProgramMarketplaceParams,
+)
 
 
 class ProgramsResource:
@@ -18,11 +26,19 @@ class ProgramsResource:
         page: Optional[int] = None,
         page_size: Optional[int] = None,
         offset: Optional[int] = None,
+        status: Optional[str] = None,
     ) -> PaginatedResponse[Program]:
         envelope = self._http.request(
             "GET",
             "/programs",
-            params={"cursor": cursor, "limit": limit, "page": page, "pageSize": page_size, "offset": offset},
+            params={
+                "cursor": cursor,
+                "limit": limit,
+                "page": page,
+                "pageSize": page_size,
+                "offset": offset,
+                "status": status,
+            },
         )
         return PaginatedResponse[Program].model_validate(envelope)
 
@@ -73,18 +89,48 @@ class ProgramsResource:
         )
         return Program.model_validate(envelope["data"])
 
-    def update(self, id: str, **data: Any) -> Program:
-        envelope = self._http.request("PATCH", f"/programs/{id}", json=data)
+    def update(
+        self,
+        id: str,
+        *,
+        name: Optional[str] = None,
+        commission_type: Optional[Literal["one_time", "recurring", "recurring_limited"]] = None,
+        commission_percent: Optional[float] = None,
+        cookie_duration: Optional[int] = None,
+        payout_threshold: Optional[int] = None,
+        auto_approve_affiliates: Optional[bool] = None,
+        description: Optional[str] = None,
+        landing_page_url: Optional[str] = None,
+        status: Optional[Literal["active", "paused", "archived"]] = None,
+        is_public: Optional[bool] = None,
+        commission_limit_months: Optional[int] = None,
+    ) -> Program:
+        body: Dict[str, Any] = {
+            "name": name,
+            "commissionType": commission_type,
+            "commissionPercent": commission_percent,
+            "cookieDuration": cookie_duration,
+            "payoutThreshold": payout_threshold,
+            "autoApproveAffiliates": auto_approve_affiliates,
+            "description": description,
+            "landingPageUrl": landing_page_url,
+            "status": status,
+            "isPublic": is_public,
+            "commissionLimitMonths": commission_limit_months,
+        }
+        envelope = self._http.request("PATCH", f"/programs/{id}", json={k: v for k, v in body.items() if v is not None})
         return Program.model_validate(envelope["data"])
 
     def delete(self, id: str) -> Program:
         envelope = self._http.request("DELETE", f"/programs/{id}")
         return Program.model_validate(envelope["data"])
 
-    def stats(self, id: str, *, period: Optional[str] = None) -> Dict[str, Any]:
+    def stats(self, id: str, *, period: Optional[str] = None) -> ProgramStats:
         envelope = self._http.request("GET", f"/programs/{id}/stats", params={"period": period})
         data = envelope.get("data", {})
-        return data if isinstance(data, dict) else {}
+        if not isinstance(data, dict):
+            data = {}
+        return ProgramStats.model_validate(data)
 
     def list_affiliates(
         self,
@@ -162,6 +208,36 @@ class ProgramsResource:
         )
         return Invite.model_validate(envelope["data"])
 
+    def list_invites(self, id: str) -> List[Invite]:
+        envelope = self._http.request("GET", f"/programs/{id}/invites")
+        raw = envelope.get("data", [])
+        if not isinstance(raw, list):
+            return []
+        return [Invite.model_validate(item) for item in raw]
+
+    def delete_coupon(self, coupon_id: str) -> Coupon:
+        envelope = self._http.request("DELETE", f"/coupons/{coupon_id}")
+        return Coupon.model_validate(envelope["data"])
+
+    def update_marketplace(
+        self,
+        id: str,
+        *,
+        status: Optional[Literal["private", "public"]] = None,
+        category: Optional[str] = None,
+        description: Optional[str] = None,
+        logo_url: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        body = UpdateProgramMarketplaceParams(
+            status=status,
+            category=category,
+            description=description,
+            logo_url=logo_url,
+        ).model_dump(by_alias=True, exclude_none=True)
+        envelope = self._http.request("PATCH", f"/programs/{id}/marketplace", json=body)
+        data = envelope.get("data", {})
+        return data if isinstance(data, dict) else {}
+
 
 class AsyncProgramsResource:
     def __init__(self, http: AsyncHttpClient) -> None:
@@ -175,11 +251,19 @@ class AsyncProgramsResource:
         page: Optional[int] = None,
         page_size: Optional[int] = None,
         offset: Optional[int] = None,
+        status: Optional[str] = None,
     ) -> PaginatedResponse[Program]:
         envelope = await self._http.request(
             "GET",
             "/programs",
-            params={"cursor": cursor, "limit": limit, "page": page, "pageSize": page_size, "offset": offset},
+            params={
+                "cursor": cursor,
+                "limit": limit,
+                "page": page,
+                "pageSize": page_size,
+                "offset": offset,
+                "status": status,
+            },
         )
         return PaginatedResponse[Program].model_validate(envelope)
 
@@ -230,18 +314,48 @@ class AsyncProgramsResource:
         )
         return Program.model_validate(envelope["data"])
 
-    async def update(self, id: str, **data: Any) -> Program:
-        envelope = await self._http.request("PATCH", f"/programs/{id}", json=data)
+    async def update(
+        self,
+        id: str,
+        *,
+        name: Optional[str] = None,
+        commission_type: Optional[Literal["one_time", "recurring", "recurring_limited"]] = None,
+        commission_percent: Optional[float] = None,
+        cookie_duration: Optional[int] = None,
+        payout_threshold: Optional[int] = None,
+        auto_approve_affiliates: Optional[bool] = None,
+        description: Optional[str] = None,
+        landing_page_url: Optional[str] = None,
+        status: Optional[Literal["active", "paused", "archived"]] = None,
+        is_public: Optional[bool] = None,
+        commission_limit_months: Optional[int] = None,
+    ) -> Program:
+        body: Dict[str, Any] = {
+            "name": name,
+            "commissionType": commission_type,
+            "commissionPercent": commission_percent,
+            "cookieDuration": cookie_duration,
+            "payoutThreshold": payout_threshold,
+            "autoApproveAffiliates": auto_approve_affiliates,
+            "description": description,
+            "landingPageUrl": landing_page_url,
+            "status": status,
+            "isPublic": is_public,
+            "commissionLimitMonths": commission_limit_months,
+        }
+        envelope = await self._http.request("PATCH", f"/programs/{id}", json={k: v for k, v in body.items() if v is not None})
         return Program.model_validate(envelope["data"])
 
     async def delete(self, id: str) -> Program:
         envelope = await self._http.request("DELETE", f"/programs/{id}")
         return Program.model_validate(envelope["data"])
 
-    async def stats(self, id: str, *, period: Optional[str] = None) -> Dict[str, Any]:
+    async def stats(self, id: str, *, period: Optional[str] = None) -> ProgramStats:
         envelope = await self._http.request("GET", f"/programs/{id}/stats", params={"period": period})
         data = envelope.get("data", {})
-        return data if isinstance(data, dict) else {}
+        if not isinstance(data, dict):
+            data = {}
+        return ProgramStats.model_validate(data)
 
     async def list_affiliates(
         self,
@@ -318,3 +432,33 @@ class AsyncProgramsResource:
             idempotency_key=idempotency_key,
         )
         return Invite.model_validate(envelope["data"])
+
+    async def list_invites(self, id: str) -> List[Invite]:
+        envelope = await self._http.request("GET", f"/programs/{id}/invites")
+        raw = envelope.get("data", [])
+        if not isinstance(raw, list):
+            return []
+        return [Invite.model_validate(item) for item in raw]
+
+    async def delete_coupon(self, coupon_id: str) -> Coupon:
+        envelope = await self._http.request("DELETE", f"/coupons/{coupon_id}")
+        return Coupon.model_validate(envelope["data"])
+
+    async def update_marketplace(
+        self,
+        id: str,
+        *,
+        status: Optional[Literal["private", "public"]] = None,
+        category: Optional[str] = None,
+        description: Optional[str] = None,
+        logo_url: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        body = UpdateProgramMarketplaceParams(
+            status=status,
+            category=category,
+            description=description,
+            logo_url=logo_url,
+        ).model_dump(by_alias=True, exclude_none=True)
+        envelope = await self._http.request("PATCH", f"/programs/{id}/marketplace", json=body)
+        data = envelope.get("data", {})
+        return data if isinstance(data, dict) else {}

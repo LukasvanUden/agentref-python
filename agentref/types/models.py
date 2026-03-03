@@ -42,111 +42,139 @@ class Program(BaseModel):
     description: Optional[str] = None
     landing_page_url: Optional[str] = None
     status: str
-    is_public: Optional[bool] = None
-    merchant_id: Optional[str] = None
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    is_public: bool
+    merchant_id: str
+    created_at: str
+    updated_at: str
+
+
+class ProgramStats(BaseModel):
+    model_config = _API_CONFIG
+
+    clicks: int
+    conversions: int
+    revenue: float
+    commissions: float
+    period: str
+
+
+class UpdateProgramMarketplaceParams(BaseModel):
+    model_config = _API_CONFIG
+
+    status: Optional[Literal["private", "public"]] = None
+    category: Optional[str] = None
+    description: Optional[str] = None
+    logo_url: Optional[str] = None
 
 
 class Affiliate(BaseModel):
     model_config = _API_CONFIG
 
     id: str
-    user_id: Optional[str] = None
-    program_id: Optional[str] = None
-    code: Optional[str] = None
-    status: Optional[str] = None
-    total_clicks: Optional[int] = None
-    total_conversions: Optional[int] = None
-    total_earnings: Optional[float] = None
-    created_at: Optional[str] = None
+    user_id: str
+    program_id: str
+    code: str
+    status: str
+    total_clicks: int
+    total_conversions: int
+    total_earnings: float
+    created_at: str
 
 
 class Conversion(BaseModel):
     model_config = _API_CONFIG
 
     id: str
-    affiliate_id: Optional[str] = None
-    program_id: Optional[str] = None
-    amount: Optional[float] = None
-    commission: Optional[float] = None
-    status: Optional[str] = None
-    method: Optional[str] = None
+    affiliate_id: str
+    program_id: str
+    amount: float
+    commission: float
+    status: str
+    method: str
     stripe_session_id: Optional[str] = None
-    created_at: Optional[str] = None
+    created_at: str
 
 
 class ConversionStats(BaseModel):
     model_config = _API_CONFIG
 
-    total: int = 0
-    pending: int = 0
-    approved: int = 0
-    total_revenue: float = 0
-    total_commissions: float = 0
+    total: int
+    pending: int
+    approved: int
+    total_revenue: float
+    total_commissions: float
 
 
 class Payout(BaseModel):
     model_config = _API_CONFIG
 
     id: str
-    affiliate_id: Optional[str] = None
-    amount: Optional[float] = None
-    status: Optional[str] = None
+    affiliate_id: str
+    amount: float
+    status: str
     method: Optional[str] = None
-    created_at: Optional[str] = None
+    created_at: str
     completed_at: Optional[str] = None
+
+
+class CreatePayoutParams(BaseModel):
+    model_config = _API_CONFIG
+
+    affiliate_id: str
+    program_id: str
+    method: Literal["paypal", "bank_transfer"]
+    notes: Optional[str] = None
 
 
 class PendingAffiliate(BaseModel):
     model_config = _API_CONFIG
 
-    affiliate_id: Optional[str] = None
-    email: Optional[str] = None
+    affiliate_id: str
+    email: str
     name: Optional[str] = None
-    code: Optional[str] = None
-    program_id: Optional[str] = None
-    program_name: Optional[str] = None
+    code: str
+    program_id: str
+    program_name: str
     payout_method: Optional[str] = None
     paypal_email: Optional[str] = None
     bank_iban: Optional[str] = None
-    pending_amount: Optional[float] = None
-    currency: Optional[str] = None
-    threshold: Optional[float] = None
-    meets_threshold: Optional[bool] = None
-    commission_count: Optional[int] = None
-    has_payout_method: Optional[bool] = None
+    pending_amount: float
+    currency: str
+    threshold: float
+    meets_threshold: bool
+    commission_count: int
+    has_payout_method: bool
 
 
 class PayoutStats(BaseModel):
     model_config = _API_CONFIG
 
-    total_paid: float = 0
-    total_pending: float = 0
-    count: int = 0
+    total_paid: float
+    total_pending: float
+    count: int
 
 
 class Flag(BaseModel):
     model_config = _API_CONFIG
 
     id: str
-    affiliate_id: Optional[str] = None
-    type: Optional[str] = None
-    status: Optional[str] = None
+    affiliate_id: str
+    type: str
+    status: str
     details: Optional[Dict[str, Any]] = None
     note: Optional[str] = None
-    created_at: Optional[str] = None
+    created_at: str
     resolved_at: Optional[str] = None
 
 
 class FlagStats(BaseModel):
     model_config = _API_CONFIG
 
-    open: int = 0
-    reviewed: int = 0
-    dismissed: int = 0
-    confirmed: int = 0
-    total: int = 0
+    open: int
+    reviewed: int
+    dismissed: int
+    confirmed: int
+    total: int
 
 
 class ResolveFlagParams(BaseModel):
@@ -163,16 +191,16 @@ class BillingTier(BaseModel):
     id: str
     name: str
     price: float
-    max_revenue: Optional[float] = None
-    features: Optional[List[str]] = None
-    bookable: Optional[bool] = None
+    max_revenue: float
+    features: List[str]
+    bookable: bool
 
 
 class BillingStatus(BaseModel):
     model_config = _API_CONFIG
 
-    tier: Optional[str] = None
-    monthly_revenue: Optional[float] = None
+    tier: str
+    monthly_revenue: float
     next_tier: Optional[str] = None
     stripe_subscription_id: Optional[str] = None
 
@@ -184,10 +212,35 @@ class Merchant(BaseModel):
     email: str
     company_name: Optional[str] = None
     domain: Optional[str] = None
-    domain_verified: Optional[bool] = None
-    trust_level: Optional[str] = None
-    stripe_connected: Optional[bool] = None
-    created_at: Optional[str] = None
+    domain_verified: bool
+    trust_level: str
+    stripe_connected: bool
+    created_at: str
+
+
+class UpdateMerchantParams(BaseModel):
+    model_config = _API_CONFIG
+
+    company_name: Optional[str] = None
+    website: Optional[str] = None
+    logo_url: Optional[str] = None
+    timezone: Optional[str] = None
+    default_cookie_duration: Optional[int] = None
+    default_payout_threshold: Optional[int] = None
+
+
+class MerchantDomainStatus(BaseModel):
+    model_config = _API_CONFIG
+
+    domain: Optional[str] = None
+    verified: bool
+    txt_record: Optional[str] = None
+
+
+class StripeConnectSession(BaseModel):
+    model_config = _API_CONFIG
+
+    url: str
 
 
 class Coupon(BaseModel):
@@ -195,16 +248,16 @@ class Coupon(BaseModel):
 
     id: str
     code: str
-    affiliate_id: Optional[str] = None
-    program_id: Optional[str] = None
-    created_at: Optional[str] = None
+    affiliate_id: str
+    program_id: str
+    created_at: str
 
 
 class Invite(BaseModel):
     model_config = _API_CONFIG
 
-    token: Optional[str] = None
-    email: Optional[str] = None
-    program_id: Optional[str] = None
-    expires_at: Optional[str] = None
-    created_at: Optional[str] = None
+    token: str
+    email: str
+    program_id: str
+    expires_at: str
+    created_at: str

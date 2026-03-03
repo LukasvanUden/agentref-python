@@ -41,12 +41,19 @@ async def test_async_list_all_stops_on_has_more_false() -> None:
                             {
                                 "id": "prog_1",
                                 "name": "Program",
+                                "description": None,
+                                "landingPageUrl": None,
                                 "commissionType": "one_time",
                                 "commissionPercent": 20,
+                                "commissionLimitMonths": None,
                                 "cookieDuration": 30,
                                 "payoutThreshold": 5000,
                                 "autoApproveAffiliates": True,
                                 "status": "active",
+                                "isPublic": True,
+                                "merchantId": "merch_1",
+                                "createdAt": "2026-01-01T00:00:00Z",
+                                "updatedAt": "2026-01-01T00:00:00Z",
                             }
                         ],
                         "meta": {
@@ -65,12 +72,19 @@ async def test_async_list_all_stops_on_has_more_false() -> None:
                             {
                                 "id": "prog_2",
                                 "name": "Program",
+                                "description": None,
+                                "landingPageUrl": None,
                                 "commissionType": "one_time",
                                 "commissionPercent": 20,
+                                "commissionLimitMonths": None,
                                 "cookieDuration": 30,
                                 "payoutThreshold": 5000,
                                 "autoApproveAffiliates": True,
                                 "status": "active",
+                                "isPublic": True,
+                                "merchantId": "merch_1",
+                                "createdAt": "2026-01-01T00:00:00Z",
+                                "updatedAt": "2026-01-01T00:00:00Z",
                             }
                         ],
                         "meta": {

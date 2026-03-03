@@ -56,7 +56,11 @@ def _parse_retry_after_seconds(value: Optional[str]) -> int:
 
 def _can_retry(method: str, idempotency_key: Optional[str]) -> bool:
     upper = method.upper()
-    return upper in _SAFE_METHODS or (upper == "POST" and idempotency_key is not None)
+    return upper in _SAFE_METHODS or (upper == "POST" and _has_usable_idempotency_key(idempotency_key))
+
+
+def _has_usable_idempotency_key(idempotency_key: Optional[str]) -> bool:
+    return isinstance(idempotency_key, str) and idempotency_key.strip() != ""
 
 
 def _json_object(response: httpx.Response) -> Dict[str, Any]:
@@ -99,8 +103,9 @@ class _BaseHttpClient:
             "User-Agent": self._user_agent,
         }
 
-        if method.upper() == "POST" and idempotency_key is not None:
-            headers["Idempotency-Key"] = idempotency_key
+        if method.upper() == "POST" and _has_usable_idempotency_key(idempotency_key):
+            assert idempotency_key is not None
+            headers["Idempotency-Key"] = idempotency_key.strip()
 
         return headers
 

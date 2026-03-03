@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from .._http import AsyncHttpClient, SyncHttpClient
-from ..types.models import PaginatedResponse, PendingAffiliate, Payout, PayoutStats
+from ..types.models import CreatePayoutParams, PaginatedResponse, PendingAffiliate, Payout, PayoutStats
 
 
 class PayoutsResource:
@@ -77,6 +77,25 @@ class PayoutsResource:
             data = {}
         return PayoutStats.model_validate(data)
 
+    def create(
+        self,
+        *,
+        affiliate_id: str,
+        program_id: str,
+        method: Literal["paypal", "bank_transfer"],
+        notes: Optional[str] = None,
+        idempotency_key: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        payload = CreatePayoutParams(
+            affiliate_id=affiliate_id,
+            program_id=program_id,
+            method=method,
+            notes=notes,
+        ).model_dump(by_alias=True, exclude_none=True)
+        envelope = self._http.request("POST", "/payouts", json=payload, idempotency_key=idempotency_key)
+        data = envelope.get("data", {})
+        return data if isinstance(data, dict) else {}
+
 
 class AsyncPayoutsResource:
     def __init__(self, http: AsyncHttpClient) -> None:
@@ -148,3 +167,22 @@ class AsyncPayoutsResource:
         if not isinstance(data, dict):
             data = {}
         return PayoutStats.model_validate(data)
+
+    async def create(
+        self,
+        *,
+        affiliate_id: str,
+        program_id: str,
+        method: Literal["paypal", "bank_transfer"],
+        notes: Optional[str] = None,
+        idempotency_key: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        payload = CreatePayoutParams(
+            affiliate_id=affiliate_id,
+            program_id=program_id,
+            method=method,
+            notes=notes,
+        ).model_dump(by_alias=True, exclude_none=True)
+        envelope = await self._http.request("POST", "/payouts", json=payload, idempotency_key=idempotency_key)
+        data = envelope.get("data", {})
+        return data if isinstance(data, dict) else {}

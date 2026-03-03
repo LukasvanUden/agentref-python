@@ -74,6 +74,27 @@ def test_post_retries_with_idempotency_key() -> None:
     client.close()
 
 
+def test_post_does_not_retry_with_empty_idempotency_key() -> None:
+    client = SyncHttpClient(api_key="ak_live_test", max_retries=2)
+    call_count = {"count": 0}
+
+    with respx.mock:
+        def handler(request: httpx.Request) -> httpx.Response:
+            call_count["count"] += 1
+            return httpx.Response(
+                500,
+                json={"error": {"code": "INTERNAL_ERROR"}, "meta": {"requestId": "r"}},
+            )
+
+        respx.post("https://www.agentref.dev/api/v1/programs").mock(side_effect=handler)
+
+        with pytest.raises(ServerError):
+            client.request("POST", "/programs", json={}, idempotency_key="")
+
+    assert call_count["count"] == 1
+    client.close()
+
+
 def test_patch_no_retry_even_with_idempotency_key() -> None:
     client = SyncHttpClient(api_key="ak_live_test", max_retries=2)
     call_count = {"count": 0}
