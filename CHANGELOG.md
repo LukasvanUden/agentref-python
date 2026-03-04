@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.4
+
+- **Fix:** `payout_info.update()` now sends `PATCH` instead of `PUT` to match the API contract.
+- Added optional `include` parameter to `affiliates.get(id, include='stats')` for fetching aggregated stats.
+
 ## 1.0.3
 
 - Added `search`, `sort_by`, `sort_order`, `status` parameters to `affiliates.list()`.

@@ -1,9 +1,13 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Literal, Optional
 
 from .._http import AsyncHttpClient, SyncHttpClient
 from ..types.models import Affiliate, PaginatedResponse
+
+_SORT_BY = Literal["createdAt", "totalClicks", "totalRevenue", "name"]
+_SORT_ORDER = Literal["asc", "desc"]
+_STATUS = Literal["approved", "pending", "blocked"]
 
 
 class AffiliatesResource:
@@ -15,6 +19,10 @@ class AffiliatesResource:
         *,
         program_id: Optional[str] = None,
         include_blocked: Optional[bool] = None,
+        search: Optional[str] = None,
+        sort_by: Optional[_SORT_BY] = None,
+        sort_order: Optional[_SORT_ORDER] = None,
+        status: Optional[_STATUS] = None,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
         page: Optional[int] = None,
@@ -27,6 +35,10 @@ class AffiliatesResource:
             params={
                 "programId": program_id,
                 "includeBlocked": include_blocked,
+                "search": search,
+                "sortBy": sort_by,
+                "sortOrder": sort_order,
+                "status": status,
                 "cursor": cursor,
                 "limit": limit,
                 "page": page,
@@ -36,8 +48,9 @@ class AffiliatesResource:
         )
         return PaginatedResponse[Affiliate].model_validate(envelope)
 
-    def get(self, id: str) -> Affiliate:
-        envelope = self._http.request("GET", f"/affiliates/{id}")
+    def get(self, id: str, *, include: Optional[str] = None) -> Affiliate:
+        params = {"include": include} if include else None
+        envelope = self._http.request("GET", f"/affiliates/{id}", params=params)
         return Affiliate.model_validate(envelope["data"])
 
     def approve(self, id: str, *, idempotency_key: Optional[str] = None) -> Affiliate:
@@ -73,6 +86,10 @@ class AsyncAffiliatesResource:
         *,
         program_id: Optional[str] = None,
         include_blocked: Optional[bool] = None,
+        search: Optional[str] = None,
+        sort_by: Optional[_SORT_BY] = None,
+        sort_order: Optional[_SORT_ORDER] = None,
+        status: Optional[_STATUS] = None,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
         page: Optional[int] = None,
@@ -85,6 +102,10 @@ class AsyncAffiliatesResource:
             params={
                 "programId": program_id,
                 "includeBlocked": include_blocked,
+                "search": search,
+                "sortBy": sort_by,
+                "sortOrder": sort_order,
+                "status": status,
                 "cursor": cursor,
                 "limit": limit,
                 "page": page,
@@ -94,8 +115,9 @@ class AsyncAffiliatesResource:
         )
         return PaginatedResponse[Affiliate].model_validate(envelope)
 
-    async def get(self, id: str) -> Affiliate:
-        envelope = await self._http.request("GET", f"/affiliates/{id}")
+    async def get(self, id: str, *, include: Optional[str] = None) -> Affiliate:
+        params = {"include": include} if include else None
+        envelope = await self._http.request("GET", f"/affiliates/{id}", params=params)
         return Affiliate.model_validate(envelope["data"])
 
     async def approve(self, id: str, *, idempotency_key: Optional[str] = None) -> Affiliate:
