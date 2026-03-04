@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.3
+
+- Added `search`, `sort_by`, `sort_order`, `status` parameters to `affiliates.list()`.
+- Added `tracking_code`, `skip_onboarding` parameters to `programs.create_invite()`.
+- Added `payout_info` resource with `get()` and `update()` methods.
+- Added `notifications` resource with `get()` and `update()` methods.
+- Added new models: `PayoutInfo`, `UpdatePayoutInfoParams`, `NotificationPreferences`, `UpdateNotificationPreferencesParams`.
+
 ## 1.0.2
 
 - Hardened idempotency retry gate: POST retries now require a non-empty idempotency key.
