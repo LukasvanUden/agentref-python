@@ -11,8 +11,10 @@ from .models import (
     Invite,
     Merchant,
     MerchantDomainStatus,
+    NotificationPreferences,
     PaginatedResponse,
     PaginationMeta,
+    PayoutInfo,
     PendingAffiliate,
     Payout,
     PayoutStats,
@@ -21,6 +23,8 @@ from .models import (
     ResolveFlagParams,
     StripeConnectSession,
     UpdateMerchantParams,
+    UpdateNotificationPreferencesParams,
+    UpdatePayoutInfoParams,
     UpdateProgramMarketplaceParams,
 )
 
@@ -48,4 +52,8 @@ __all__ = [
     "UpdateProgramMarketplaceParams",
     "Coupon",
     "Invite",
+    "PayoutInfo",
+    "UpdatePayoutInfoParams",
+    "NotificationPreferences",
+    "UpdateNotificationPreferencesParams",
 ]

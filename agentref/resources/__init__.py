@@ -3,6 +3,8 @@ from .billing import AsyncBillingResource, BillingResource
 from .conversions import AsyncConversionsResource, ConversionsResource
 from .flags import AsyncFlagsResource, FlagsResource
 from .merchant import AsyncMerchantResource, MerchantResource
+from .notifications import AsyncNotificationsResource, NotificationsResource
+from .payout_info import AsyncPayoutInfoResource, PayoutInfoResource
 from .payouts import AsyncPayoutsResource, PayoutsResource
 from .programs import AsyncProgramsResource, ProgramsResource
 
@@ -14,6 +16,8 @@ __all__ = [
     "FlagsResource",
     "BillingResource",
     "MerchantResource",
+    "NotificationsResource",
+    "PayoutInfoResource",
     "AsyncProgramsResource",
     "AsyncAffiliatesResource",
     "AsyncConversionsResource",
@@ -21,4 +25,6 @@ __all__ = [
     "AsyncFlagsResource",
     "AsyncBillingResource",
     "AsyncMerchantResource",
+    "AsyncNotificationsResource",
+    "AsyncPayoutInfoResource",
 ]

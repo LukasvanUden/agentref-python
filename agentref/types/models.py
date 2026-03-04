@@ -261,3 +261,55 @@ class Invite(BaseModel):
     program_id: str
     expires_at: str
     created_at: str
+
+
+class PayoutInfo(BaseModel):
+    model_config = _API_CONFIG
+
+    payout_method: Optional[str] = None
+    paypal_email: Optional[str] = None
+    bank_iban: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    address_line1: Optional[str] = None
+    address_line2: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    postal_code: Optional[str] = None
+    vat_id: Optional[str] = None
+
+
+class UpdatePayoutInfoParams(BaseModel):
+    model_config = _API_CONFIG
+
+    payout_method: Optional[str] = None
+    paypal_email: Optional[str] = None
+    bank_iban: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    address_line1: Optional[str] = None
+    address_line2: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    postal_code: Optional[str] = None
+    vat_id: Optional[str] = None
+
+
+class NotificationPreferences(BaseModel):
+    model_config = _API_CONFIG
+
+    new_affiliate: bool = True
+    new_conversion: bool = True
+    commission_approved: bool = True
+    payout_processed: bool = True
+    weekly_digest: bool = True
+
+
+class UpdateNotificationPreferencesParams(BaseModel):
+    model_config = _API_CONFIG
+
+    new_affiliate: Optional[bool] = None
+    new_conversion: Optional[bool] = None
+    commission_approved: Optional[bool] = None
+    payout_processed: Optional[bool] = None
+    weekly_digest: Optional[bool] = None

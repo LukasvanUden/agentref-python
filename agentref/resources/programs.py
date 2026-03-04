@@ -191,6 +191,8 @@ class ProgramsResource:
         is_public: Optional[bool] = None,
         usage_limit: Optional[int] = None,
         expires_in_days: Optional[int] = None,
+        tracking_code: Optional[str] = None,
+        skip_onboarding: Optional[bool] = None,
         idempotency_key: Optional[str] = None,
     ) -> Invite:
         body = {
@@ -199,6 +201,8 @@ class ProgramsResource:
             "isPublic": is_public,
             "usageLimit": usage_limit,
             "expiresInDays": expires_in_days,
+            "trackingCode": tracking_code,
+            "skipOnboarding": skip_onboarding,
         }
         envelope = self._http.request(
             "POST",
@@ -416,6 +420,8 @@ class AsyncProgramsResource:
         is_public: Optional[bool] = None,
         usage_limit: Optional[int] = None,
         expires_in_days: Optional[int] = None,
+        tracking_code: Optional[str] = None,
+        skip_onboarding: Optional[bool] = None,
         idempotency_key: Optional[str] = None,
     ) -> Invite:
         body = {
@@ -424,6 +430,8 @@ class AsyncProgramsResource:
             "isPublic": is_public,
             "usageLimit": usage_limit,
             "expiresInDays": expires_in_days,
+            "trackingCode": tracking_code,
+            "skipOnboarding": skip_onboarding,
         }
         envelope = await self._http.request(
             "POST",

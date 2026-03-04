@@ -10,12 +10,16 @@ from .resources import (
     AsyncConversionsResource,
     AsyncFlagsResource,
     AsyncMerchantResource,
+    AsyncNotificationsResource,
+    AsyncPayoutInfoResource,
     AsyncPayoutsResource,
     AsyncProgramsResource,
     BillingResource,
     ConversionsResource,
     FlagsResource,
     MerchantResource,
+    NotificationsResource,
+    PayoutInfoResource,
     PayoutsResource,
     ProgramsResource,
 )
@@ -44,13 +48,15 @@ class AgentRef:
         self.flags = FlagsResource(self._http)
         self.billing = BillingResource(self._http)
         self.merchant = MerchantResource(self._http)
+        self.notifications = NotificationsResource(self._http)
+        self.payout_info = PayoutInfoResource(self._http)
 
     def close(self) -> None:
         self._http.close()
 
 
 class AsyncAgentRef:
-    """Async variant — use as async context manager for connection pooling."""
+    """Async variant -- use as async context manager for connection pooling."""
 
     def __init__(
         self,
@@ -74,6 +80,8 @@ class AsyncAgentRef:
         self.flags = AsyncFlagsResource(self._http)
         self.billing = AsyncBillingResource(self._http)
         self.merchant = AsyncMerchantResource(self._http)
+        self.notifications = AsyncNotificationsResource(self._http)
+        self.payout_info = AsyncPayoutInfoResource(self._http)
 
     async def __aenter__(self) -> "AsyncAgentRef":
         await self._http.__aenter__()
