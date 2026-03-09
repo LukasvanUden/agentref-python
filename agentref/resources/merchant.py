@@ -23,6 +23,9 @@ class MerchantResource:
         timezone: Optional[str] = None,
         default_cookie_duration: Optional[int] = None,
         default_payout_threshold: Optional[int] = None,
+        tracking_requires_consent: Optional[bool] = None,
+        tracking_param_aliases: Optional[list[str]] = None,
+        tracking_legacy_metadata_fallback_enabled: Optional[bool] = None,
     ) -> Merchant:
         payload = UpdateMerchantParams(
             company_name=company_name,
@@ -31,6 +34,9 @@ class MerchantResource:
             timezone=timezone,
             default_cookie_duration=default_cookie_duration,
             default_payout_threshold=default_payout_threshold,
+            tracking_requires_consent=tracking_requires_consent,
+            tracking_param_aliases=tracking_param_aliases,
+            tracking_legacy_metadata_fallback_enabled=tracking_legacy_metadata_fallback_enabled,
         ).model_dump(by_alias=True, exclude_none=True)
         envelope = self._http.request("PATCH", "/merchant", json=payload)
         return Merchant.model_validate(envelope["data"])
@@ -61,6 +67,9 @@ class AsyncMerchantResource:
         timezone: Optional[str] = None,
         default_cookie_duration: Optional[int] = None,
         default_payout_threshold: Optional[int] = None,
+        tracking_requires_consent: Optional[bool] = None,
+        tracking_param_aliases: Optional[list[str]] = None,
+        tracking_legacy_metadata_fallback_enabled: Optional[bool] = None,
     ) -> Merchant:
         payload = UpdateMerchantParams(
             company_name=company_name,
@@ -69,6 +78,9 @@ class AsyncMerchantResource:
             timezone=timezone,
             default_cookie_duration=default_cookie_duration,
             default_payout_threshold=default_payout_threshold,
+            tracking_requires_consent=tracking_requires_consent,
+            tracking_param_aliases=tracking_param_aliases,
+            tracking_legacy_metadata_fallback_enabled=tracking_legacy_metadata_fallback_enabled,
         ).model_dump(by_alias=True, exclude_none=True)
         envelope = await self._http.request("PATCH", "/merchant", json=payload)
         return Merchant.model_validate(envelope["data"])

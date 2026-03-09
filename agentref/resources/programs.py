@@ -68,6 +68,8 @@ class ProgramsResource:
         description: Optional[str] = None,
         landing_page_url: Optional[str] = None,
         commission_limit_months: Optional[int] = None,
+        portal_slug: Optional[str] = None,
+        currency: Optional[str] = None,
         idempotency_key: Optional[str] = None,
     ) -> Program:
         body: Dict[str, Any] = {
@@ -80,6 +82,8 @@ class ProgramsResource:
             "description": description,
             "landingPageUrl": landing_page_url,
             "commissionLimitMonths": commission_limit_months,
+            "portalSlug": portal_slug,
+            "currency": currency,
         }
         envelope = self._http.request(
             "POST",
@@ -102,8 +106,9 @@ class ProgramsResource:
         description: Optional[str] = None,
         landing_page_url: Optional[str] = None,
         status: Optional[Literal["active", "paused", "archived"]] = None,
-        is_public: Optional[bool] = None,
         commission_limit_months: Optional[int] = None,
+        portal_slug: Optional[str] = None,
+        currency: Optional[str] = None,
     ) -> Program:
         body: Dict[str, Any] = {
             "name": name,
@@ -115,8 +120,9 @@ class ProgramsResource:
             "description": description,
             "landingPageUrl": landing_page_url,
             "status": status,
-            "isPublic": is_public,
             "commissionLimitMonths": commission_limit_months,
+            "portalSlug": portal_slug,
+            "currency": currency,
         }
         envelope = self._http.request("PATCH", f"/programs/{id}", json={k: v for k, v in body.items() if v is not None})
         return Program.model_validate(envelope["data"])
@@ -227,7 +233,7 @@ class ProgramsResource:
         self,
         id: str,
         *,
-        status: Optional[Literal["private", "public"]] = None,
+        status: Optional[Literal["private", "pending", "public"]] = None,
         category: Optional[str] = None,
         description: Optional[str] = None,
         logo_url: Optional[str] = None,
@@ -297,6 +303,8 @@ class AsyncProgramsResource:
         description: Optional[str] = None,
         landing_page_url: Optional[str] = None,
         commission_limit_months: Optional[int] = None,
+        portal_slug: Optional[str] = None,
+        currency: Optional[str] = None,
         idempotency_key: Optional[str] = None,
     ) -> Program:
         body: Dict[str, Any] = {
@@ -309,6 +317,8 @@ class AsyncProgramsResource:
             "description": description,
             "landingPageUrl": landing_page_url,
             "commissionLimitMonths": commission_limit_months,
+            "portalSlug": portal_slug,
+            "currency": currency,
         }
         envelope = await self._http.request(
             "POST",
@@ -331,8 +341,9 @@ class AsyncProgramsResource:
         description: Optional[str] = None,
         landing_page_url: Optional[str] = None,
         status: Optional[Literal["active", "paused", "archived"]] = None,
-        is_public: Optional[bool] = None,
         commission_limit_months: Optional[int] = None,
+        portal_slug: Optional[str] = None,
+        currency: Optional[str] = None,
     ) -> Program:
         body: Dict[str, Any] = {
             "name": name,
@@ -344,8 +355,9 @@ class AsyncProgramsResource:
             "description": description,
             "landingPageUrl": landing_page_url,
             "status": status,
-            "isPublic": is_public,
             "commissionLimitMonths": commission_limit_months,
+            "portalSlug": portal_slug,
+            "currency": currency,
         }
         envelope = await self._http.request("PATCH", f"/programs/{id}", json={k: v for k, v in body.items() if v is not None})
         return Program.model_validate(envelope["data"])
@@ -456,7 +468,7 @@ class AsyncProgramsResource:
         self,
         id: str,
         *,
-        status: Optional[Literal["private", "public"]] = None,
+        status: Optional[Literal["private", "pending", "public"]] = None,
         category: Optional[str] = None,
         description: Optional[str] = None,
         logo_url: Optional[str] = None,

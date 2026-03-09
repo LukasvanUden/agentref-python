@@ -11,18 +11,26 @@ from agentref import AgentRef
 def _mock_program() -> dict:
     return {
         "id": "prog_1",
+        "merchantId": "merch_1",
         "name": "Program",
         "description": None,
+        "slug": "program",
         "landingPageUrl": None,
+        "portalSlug": "program",
+        "status": "active",
+        "marketplaceStatus": "public",
+        "marketplaceCategory": None,
+        "marketplaceDescription": None,
+        "marketplaceLogoUrl": None,
         "commissionType": "one_time",
         "commissionPercent": 20,
         "commissionLimitMonths": None,
+        "commissionHoldDays": 30,
         "cookieDuration": 30,
         "payoutThreshold": 5000,
+        "currency": "USD",
         "autoApproveAffiliates": True,
-        "status": "active",
-        "isPublic": True,
-        "merchantId": "merch_1",
+        "termsUrl": None,
         "createdAt": "2026-01-01T00:00:00Z",
         "updatedAt": "2026-01-01T00:00:00Z",
     }
@@ -41,6 +49,8 @@ def test_create_uses_real_field_names() -> None:
             commission_type="one_time",
             commission_percent=20,
             cookie_duration=30,
+            portal_slug="test-program",
+            currency="EUR",
         )
 
         body = json.loads(route.calls[0].request.content)
@@ -48,6 +58,8 @@ def test_create_uses_real_field_names() -> None:
     assert "commissionType" in body
     assert "commissionPercent" in body
     assert "cookieDuration" in body
+    assert body["portalSlug"] == "test-program"
+    assert body["currency"] == "EUR"
     assert "commissionRate" not in body
     assert "cookieDays" not in body
 
@@ -149,11 +161,11 @@ def test_update_marketplace_uses_camel_case_payload() -> None:
 
     with respx.mock:
         route = respx.patch("https://www.agentref.dev/api/v1/programs/prog_1/marketplace").mock(
-            return_value=httpx.Response(200, json={"data": {"status": "public"}, "meta": {"requestId": "r"}})
+            return_value=httpx.Response(200, json={"data": {"status": "pending"}, "meta": {"requestId": "r"}})
         )
-        client.programs.update_marketplace("prog_1", status="public", logo_url="https://cdn.example.com/logo.png")
+        client.programs.update_marketplace("prog_1", status="pending", logo_url="https://cdn.example.com/logo.png")
         body = json.loads(route.calls[0].request.content)
-    assert body["status"] == "public"
+    assert body["status"] == "pending"
     assert body["logoUrl"] == "https://cdn.example.com/logo.png"
 
 
@@ -188,13 +200,32 @@ def test_merchant_update_and_connect_stripe() -> None:
                 json={
                     "data": {
                         "id": "merch_1",
-                        "email": "merchant@example.com",
+                        "userId": "user_1",
                         "companyName": "AgentRef Inc",
-                        "domain": None,
-                        "domainVerified": False,
-                        "trustLevel": "standard",
-                        "stripeConnected": False,
+                        "website": "https://agentref.dev",
+                        "logoUrl": None,
+                        "stripeAccountId": None,
+                        "stripeConnectedAt": None,
+                        "billingTier": "free",
+                        "stripeCustomerId": None,
+                        "stripeSubscriptionId": None,
+                        "paymentStatus": "active",
+                        "lastPaymentFailedAt": None,
+                        "defaultCookieDuration": 30,
+                        "defaultPayoutThreshold": 5000,
+                        "timezone": "UTC",
+                        "trackingRequiresConsent": True,
+                        "trackingParamAliases": ["ref", "partner"],
+                        "trackingLegacyMetadataFallbackEnabled": True,
+                        "state": "verified",
+                        "verifiedDomain": "agentref.dev",
+                        "domainVerificationToken": None,
+                        "domainVerifiedAt": "2026-01-01T00:00:00Z",
+                        "notificationPreferences": {"newAffiliate": True},
+                        "onboardingCompleted": True,
+                        "onboardingStep": 4,
                         "createdAt": "2026-01-01T00:00:00Z",
+                        "updatedAt": "2026-01-02T00:00:00Z",
                     },
                     "meta": {"requestId": "r"},
                 },
@@ -204,12 +235,150 @@ def test_merchant_update_and_connect_stripe() -> None:
             return_value=httpx.Response(200, json={"data": {"url": "https://connect.stripe.com/x"}, "meta": {"requestId": "r"}})
         )
 
-        merchant = client.merchant.update(company_name="AgentRef Inc")
+        merchant = client.merchant.update(
+            company_name="AgentRef Inc",
+            tracking_requires_consent=True,
+            tracking_param_aliases=["ref", "partner"],
+        )
         connect = client.merchant.connect_stripe()
         update_body = json.loads(update_route.calls[0].request.content)
         connect_method = connect_route.calls[0].request.method
 
     assert merchant.company_name == "AgentRef Inc"
     assert update_body["companyName"] == "AgentRef Inc"
+    assert update_body["trackingRequiresConsent"] is True
+    assert update_body["trackingParamAliases"] == ["ref", "partner"]
+    assert merchant.state == "verified"
+    assert merchant.verified_domain == "agentref.dev"
     assert connect.url.startswith("https://connect.stripe.com")
     assert connect_method == "POST"
+
+
+def test_merchant_domain_status_uses_current_contract() -> None:
+    client = AgentRef(api_key="ak_live_test")
+
+    with respx.mock:
+        respx.get("https://www.agentref.dev/api/v1/merchant/domain-status").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "status": "verified",
+                        "domain": "agentref.dev",
+                        "txtRecord": None,
+                        "verifiedAt": "2026-01-01T00:00:00Z",
+                        "trackingMode": "advanced",
+                        "advancedTrackingEnabled": True,
+                    },
+                    "meta": {"requestId": "r"},
+                },
+            )
+        )
+
+        status = client.merchant.domain_status()
+
+    assert status.status == "verified"
+    assert status.tracking_mode == "advanced"
+
+
+def test_program_stats_uses_current_contract() -> None:
+    client = AgentRef(api_key="ak_live_test")
+
+    with respx.mock:
+        respx.get("https://www.agentref.dev/api/v1/programs/prog_1/stats").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "programId": "prog_1",
+                        "programName": "Growth Program",
+                        "status": "active",
+                        "totalRevenue": 25000,
+                        "totalConversions": 12,
+                        "totalCommissions": 5000,
+                        "pendingCommissions": 1200,
+                        "activeAffiliates": 3,
+                        "conversionsByStatus": {
+                            "pending": 1,
+                            "approved": 10,
+                            "rejected": 1,
+                            "refunded": 0,
+                        },
+                    },
+                    "meta": {"requestId": "r"},
+                },
+            )
+        )
+
+        stats = client.programs.stats("prog_1")
+
+    assert stats.program_id == "prog_1"
+    assert stats.conversions_by_status["approved"] == 10
+
+
+def test_payout_info_supports_bank_fields() -> None:
+    client = AgentRef(api_key="ak_live_test")
+
+    with respx.mock:
+        get_route = respx.get("https://www.agentref.dev/api/v1/me/payout-info").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "payoutMethod": "bank_transfer",
+                        "paypalEmail": None,
+                        "bankAccountHolder": "Jane Doe",
+                        "bankIban": "****1234",
+                        "bankBic": "COBADEFFXXX",
+                        "firstName": "Jane",
+                        "lastName": "Doe",
+                        "addressLine1": "Main Street 1",
+                        "addressLine2": None,
+                        "city": "Berlin",
+                        "state": None,
+                        "postalCode": "10115",
+                        "vatId": "DE123",
+                    },
+                    "meta": {"requestId": "r"},
+                },
+            )
+        )
+        update_route = respx.patch("https://www.agentref.dev/api/v1/me/payout-info").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "payoutMethod": "bank_transfer",
+                        "paypalEmail": None,
+                        "bankAccountHolder": "Jane Doe",
+                        "bankIban": "****1234",
+                        "bankBic": "COBADEFFXXX",
+                        "firstName": "Jane",
+                        "lastName": "Doe",
+                        "addressLine1": "Main Street 1",
+                        "addressLine2": None,
+                        "city": "Berlin",
+                        "state": None,
+                        "postalCode": "10115",
+                        "vatId": "DE123",
+                    },
+                    "meta": {"requestId": "r"},
+                },
+            )
+        )
+
+        payout_info = client.payout_info.get()
+        client.payout_info.update(
+            payout_method="bank_transfer",
+            bank_account_holder="Jane Doe",
+            bank_iban="DE89370400440532013000",
+            bank_bic="COBADEFFXXX",
+        )
+
+        update_body = json.loads(update_route.calls[0].request.content)
+
+    assert get_route.called
+    assert payout_info.bank_account_holder == "Jane Doe"
+    assert payout_info.bank_bic == "COBADEFFXXX"
+    assert update_body["bankAccountHolder"] == "Jane Doe"
+    assert update_body["bankBic"] == "COBADEFFXXX"
