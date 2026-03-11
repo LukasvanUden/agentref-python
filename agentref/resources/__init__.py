@@ -7,6 +7,7 @@ from .notifications import AsyncNotificationsResource, NotificationsResource
 from .payout_info import AsyncPayoutInfoResource, PayoutInfoResource
 from .payouts import AsyncPayoutsResource, PayoutsResource
 from .programs import AsyncProgramsResource, ProgramsResource
+from .webhooks import AsyncWebhooksResource, WebhooksResource
 
 __all__ = [
     "ProgramsResource",
@@ -16,6 +17,7 @@ __all__ = [
     "FlagsResource",
     "BillingResource",
     "MerchantResource",
+    "WebhooksResource",
     "NotificationsResource",
     "PayoutInfoResource",
     "AsyncProgramsResource",
@@ -25,6 +27,7 @@ __all__ = [
     "AsyncFlagsResource",
     "AsyncBillingResource",
     "AsyncMerchantResource",
+    "AsyncWebhooksResource",
     "AsyncNotificationsResource",
     "AsyncPayoutInfoResource",
 ]

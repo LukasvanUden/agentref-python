@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from .._http import AsyncHttpClient, SyncHttpClient
-from ..types.models import Merchant, MerchantDomainStatus, StripeConnectSession, UpdateMerchantParams
+from ..types.models import Merchant, UpdateMerchantParams
 
 
 class MerchantResource:
@@ -18,7 +18,6 @@ class MerchantResource:
         self,
         *,
         company_name: Optional[str] = None,
-        website: Optional[str] = None,
         logo_url: Optional[str] = None,
         timezone: Optional[str] = None,
         default_cookie_duration: Optional[int] = None,
@@ -29,7 +28,6 @@ class MerchantResource:
     ) -> Merchant:
         payload = UpdateMerchantParams(
             company_name=company_name,
-            website=website,
             logo_url=logo_url,
             timezone=timezone,
             default_cookie_duration=default_cookie_duration,
@@ -40,14 +38,6 @@ class MerchantResource:
         ).model_dump(by_alias=True, exclude_none=True)
         envelope = self._http.request("PATCH", "/merchant", json=payload)
         return Merchant.model_validate(envelope["data"])
-
-    def connect_stripe(self) -> StripeConnectSession:
-        envelope = self._http.request("POST", "/merchant/connect-stripe")
-        return StripeConnectSession.model_validate(envelope["data"])
-
-    def domain_status(self) -> MerchantDomainStatus:
-        envelope = self._http.request("GET", "/merchant/domain-status")
-        return MerchantDomainStatus.model_validate(envelope["data"])
 
 
 class AsyncMerchantResource:
@@ -62,7 +52,6 @@ class AsyncMerchantResource:
         self,
         *,
         company_name: Optional[str] = None,
-        website: Optional[str] = None,
         logo_url: Optional[str] = None,
         timezone: Optional[str] = None,
         default_cookie_duration: Optional[int] = None,
@@ -73,7 +62,6 @@ class AsyncMerchantResource:
     ) -> Merchant:
         payload = UpdateMerchantParams(
             company_name=company_name,
-            website=website,
             logo_url=logo_url,
             timezone=timezone,
             default_cookie_duration=default_cookie_duration,
@@ -84,11 +72,3 @@ class AsyncMerchantResource:
         ).model_dump(by_alias=True, exclude_none=True)
         envelope = await self._http.request("PATCH", "/merchant", json=payload)
         return Merchant.model_validate(envelope["data"])
-
-    async def connect_stripe(self) -> StripeConnectSession:
-        envelope = await self._http.request("POST", "/merchant/connect-stripe")
-        return StripeConnectSession.model_validate(envelope["data"])
-
-    async def domain_status(self) -> MerchantDomainStatus:
-        envelope = await self._http.request("GET", "/merchant/domain-status")
-        return MerchantDomainStatus.model_validate(envelope["data"])

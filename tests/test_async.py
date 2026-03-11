@@ -121,3 +121,35 @@ async def test_async_list_all_stops_on_has_more_false() -> None:
                 ids.append(program.id)
 
     assert ids == ["prog_1", "prog_2"]
+
+
+@pytest.mark.asyncio
+async def test_async_webhooks_list_uses_current_contract() -> None:
+    with respx.mock:
+        respx.get("https://www.agentref.dev/api/v1/webhooks").return_value = httpx.Response(
+            200,
+            json={
+                "data": [
+                    {
+                        "id": "wh_1",
+                        "name": "Primary",
+                        "url": "https://example.com/webhooks",
+                        "status": "active",
+                        "programId": "prog_1",
+                        "schemaVersion": 2,
+                        "subscribedEvents": ["program.created"],
+                        "secretLastFour": "1234",
+                        "createdAt": "2026-01-01T00:00:00Z",
+                        "updatedAt": "2026-01-01T00:00:00Z",
+                        "disabledAt": None,
+                    }
+                ],
+                "meta": {"requestId": "r"},
+            },
+        )
+
+        async with AsyncAgentRef(api_key="ak_live_test") as client:
+            result = await client.webhooks.list(program_id="prog_1")
+
+    assert result[0].program_id == "prog_1"
+    assert result[0].schema_version == 2

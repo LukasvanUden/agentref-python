@@ -42,6 +42,7 @@ def test_pydantic_models_parse_camel_case() -> None:
             "name": "Test",
             "description": None,
             "slug": "test",
+            "website": "https://agentref.dev",
             "landingPageUrl": None,
             "portalSlug": "test",
             "status": "active",
@@ -54,10 +55,18 @@ def test_pydantic_models_parse_camel_case() -> None:
             "commissionLimitMonths": None,
             "commissionHoldDays": 30,
             "cookieDuration": 30,
+            "trackingRequiresConsent": False,
+            "trackingParamAliases": ["ref"],
+            "trackingLegacyMetadataFallbackEnabled": True,
             "payoutThreshold": 5000,
             "currency": "USD",
             "autoApproveAffiliates": True,
             "termsUrl": None,
+            "stripeAccountId": None,
+            "stripeConnectedAt": None,
+            "verifiedDomain": None,
+            "domainVerificationToken": None,
+            "domainVerifiedAt": None,
             "createdAt": "2026-01-01T00:00:00Z",
             "updatedAt": "2026-01-01T00:00:00Z",
         }
@@ -77,13 +86,9 @@ def test_merchant_model_parses_current_rest_shape() -> None:
             "id": "merch_1",
             "userId": "user_1",
             "companyName": "AgentRef Inc",
-            "website": "https://agentref.dev",
             "logoUrl": None,
-            "stripeAccountId": None,
-            "stripeConnectedAt": None,
             "billingTier": "free",
-            "stripeCustomerId": None,
-            "stripeSubscriptionId": None,
+            "billingRequirementStatus": "not_required",
             "paymentStatus": "active",
             "lastPaymentFailedAt": None,
             "defaultCookieDuration": 30,
@@ -92,10 +97,6 @@ def test_merchant_model_parses_current_rest_shape() -> None:
             "trackingRequiresConsent": True,
             "trackingParamAliases": ["ref"],
             "trackingLegacyMetadataFallbackEnabled": True,
-            "state": "verified",
-            "verifiedDomain": "agentref.dev",
-            "domainVerificationToken": None,
-            "domainVerifiedAt": "2026-01-01T00:00:00Z",
             "notificationPreferences": {"newAffiliate": True},
             "onboardingCompleted": True,
             "onboardingStep": 4,
@@ -104,8 +105,8 @@ def test_merchant_model_parses_current_rest_shape() -> None:
         }
     )
 
-    assert merchant.state == "verified"
-    assert merchant.verified_domain == "agentref.dev"
+    assert merchant.billing_requirement_status == "not_required"
+    assert merchant.notification_preferences == {"newAffiliate": True}
 
 
 def test_pagination_meta_parses_camel_case() -> None:

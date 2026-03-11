@@ -15,6 +15,7 @@ def _mock_program() -> dict:
         "name": "Program",
         "description": None,
         "slug": "program",
+        "website": "https://agentref.dev",
         "landingPageUrl": None,
         "portalSlug": "program",
         "status": "active",
@@ -27,10 +28,18 @@ def _mock_program() -> dict:
         "commissionLimitMonths": None,
         "commissionHoldDays": 30,
         "cookieDuration": 30,
+        "trackingRequiresConsent": False,
+        "trackingParamAliases": ["ref"],
+        "trackingLegacyMetadataFallbackEnabled": True,
         "payoutThreshold": 5000,
         "currency": "USD",
         "autoApproveAffiliates": True,
         "termsUrl": None,
+        "stripeAccountId": None,
+        "stripeConnectedAt": None,
+        "verifiedDomain": None,
+        "domainVerificationToken": None,
+        "domainVerifiedAt": None,
         "createdAt": "2026-01-01T00:00:00Z",
         "updatedAt": "2026-01-01T00:00:00Z",
     }
@@ -92,6 +101,23 @@ def test_list_all_stops_on_has_more_false() -> None:
     assert len(all_programs) == 2
     assert all_programs[0].id == "prog_1"
     assert all_programs[1].id == "prog_2"
+
+
+def test_program_get_returns_program_detail() -> None:
+    client = AgentRef(api_key="ak_live_test")
+
+    with respx.mock:
+        respx.get("https://www.agentref.dev/api/v1/programs/prog_1").mock(
+            return_value=httpx.Response(
+                200,
+                json={"data": {**_mock_program(), "readiness": "ready"}, "meta": {"requestId": "r"}},
+            )
+        )
+
+        program = client.programs.get("prog_1")
+
+    assert program.id == "prog_1"
+    assert program.readiness == "ready"
 
 
 def test_flags_resolve_sends_block_affiliate_true() -> None:
@@ -190,7 +216,7 @@ def test_payouts_create_sends_idempotency_and_body() -> None:
     assert idempotency == "idem-payout-1"
 
 
-def test_merchant_update_and_connect_stripe() -> None:
+def test_merchant_update_uses_current_contract() -> None:
     client = AgentRef(api_key="ak_live_test")
 
     with respx.mock:
@@ -202,13 +228,9 @@ def test_merchant_update_and_connect_stripe() -> None:
                         "id": "merch_1",
                         "userId": "user_1",
                         "companyName": "AgentRef Inc",
-                        "website": "https://agentref.dev",
                         "logoUrl": None,
-                        "stripeAccountId": None,
-                        "stripeConnectedAt": None,
                         "billingTier": "free",
-                        "stripeCustomerId": None,
-                        "stripeSubscriptionId": None,
+                        "billingRequirementStatus": "not_required",
                         "paymentStatus": "active",
                         "lastPaymentFailedAt": None,
                         "defaultCookieDuration": 30,
@@ -217,10 +239,6 @@ def test_merchant_update_and_connect_stripe() -> None:
                         "trackingRequiresConsent": True,
                         "trackingParamAliases": ["ref", "partner"],
                         "trackingLegacyMetadataFallbackEnabled": True,
-                        "state": "verified",
-                        "verifiedDomain": "agentref.dev",
-                        "domainVerificationToken": None,
-                        "domainVerifiedAt": "2026-01-01T00:00:00Z",
                         "notificationPreferences": {"newAffiliate": True},
                         "onboardingCompleted": True,
                         "onboardingStep": 4,
@@ -231,54 +249,247 @@ def test_merchant_update_and_connect_stripe() -> None:
                 },
             )
         )
-        connect_route = respx.post("https://www.agentref.dev/api/v1/merchant/connect-stripe").mock(
-            return_value=httpx.Response(200, json={"data": {"url": "https://connect.stripe.com/x"}, "meta": {"requestId": "r"}})
-        )
 
         merchant = client.merchant.update(
             company_name="AgentRef Inc",
             tracking_requires_consent=True,
             tracking_param_aliases=["ref", "partner"],
         )
-        connect = client.merchant.connect_stripe()
         update_body = json.loads(update_route.calls[0].request.content)
-        connect_method = connect_route.calls[0].request.method
 
     assert merchant.company_name == "AgentRef Inc"
     assert update_body["companyName"] == "AgentRef Inc"
     assert update_body["trackingRequiresConsent"] is True
     assert update_body["trackingParamAliases"] == ["ref", "partner"]
-    assert merchant.state == "verified"
-    assert merchant.verified_domain == "agentref.dev"
-    assert connect.url.startswith("https://connect.stripe.com")
-    assert connect_method == "POST"
+    assert merchant.billing_requirement_status == "not_required"
+    assert not hasattr(merchant, "state")
 
 
-def test_merchant_domain_status_uses_current_contract() -> None:
+def test_program_connects_stripe_via_program_scope() -> None:
     client = AgentRef(api_key="ak_live_test")
 
     with respx.mock:
-        respx.get("https://www.agentref.dev/api/v1/merchant/domain-status").mock(
+        route = respx.post("https://www.agentref.dev/api/v1/programs/prog_1/connect-stripe").mock(
             return_value=httpx.Response(
                 200,
                 json={
                     "data": {
-                        "status": "verified",
-                        "domain": "agentref.dev",
-                        "txtRecord": None,
-                        "verifiedAt": "2026-01-01T00:00:00Z",
-                        "trackingMode": "advanced",
-                        "advancedTrackingEnabled": True,
+                        "connected": False,
+                        "method": "oauth_url",
+                        "programId": "prog_1",
+                        "authUrl": "https://connect.stripe.com/oauth/authorize",
+                        "message": "Continue in Stripe.",
                     },
                     "meta": {"requestId": "r"},
                 },
             )
         )
 
-        status = client.merchant.domain_status()
+        connect = client.programs.connect_stripe("prog_1", method="oauth_url")
+        body = json.loads(route.calls[0].request.content)
 
-    assert status.status == "verified"
-    assert status.tracking_mode == "advanced"
+    assert body["method"] == "oauth_url"
+    assert connect.program_id == "prog_1"
+    assert connect.auth_url == "https://connect.stripe.com/oauth/authorize"
+
+
+def test_program_domain_methods_use_current_contract() -> None:
+    client = AgentRef(api_key="ak_live_test")
+
+    with respx.mock:
+        respx.post("https://www.agentref.dev/api/v1/programs/prog_1/verify-domain").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "programId": "prog_1",
+                        "domain": "agentref.dev",
+                        "token": "verify_me",
+                        "txtRecord": "verify_me",
+                        "txtRecordName": "_agentref.agentref.dev",
+                        "message": "Add the TXT record.",
+                    },
+                    "meta": {"requestId": "r"},
+                },
+            )
+        )
+        respx.get("https://www.agentref.dev/api/v1/programs/prog_1/verify-domain/status").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "verified": True,
+                        "domain": "agentref.dev",
+                        "verifiedAt": "2026-01-01T00:00:00Z",
+                        "programId": "prog_1",
+                        "programReadiness": "ready",
+                        "message": "Domain verified.",
+                    },
+                    "meta": {"requestId": "r"},
+                },
+            )
+        )
+        respx.delete("https://www.agentref.dev/api/v1/programs/prog_1/verify-domain").mock(
+            return_value=httpx.Response(
+                200,
+                json={"data": {"success": True}, "meta": {"requestId": "r"}},
+            )
+        )
+
+        verify = client.programs.verify_domain("prog_1", domain="agentref.dev")
+        status = client.programs.get_domain_status("prog_1")
+        removed = client.programs.remove_domain_verification("prog_1")
+
+    assert verify.txt_record_name == "_agentref.agentref.dev"
+    assert status.program_readiness == "ready"
+    assert removed.success is True
+
+
+def test_program_disconnects_stripe() -> None:
+    client = AgentRef(api_key="ak_live_test")
+
+    with respx.mock:
+        respx.delete("https://www.agentref.dev/api/v1/programs/prog_1/connect-stripe").mock(
+            return_value=httpx.Response(
+                200,
+                json={"data": {"success": True, "programId": "prog_1"}, "meta": {"requestId": "r"}},
+            )
+        )
+
+        result = client.programs.disconnect_stripe("prog_1")
+
+    assert result.success is True
+    assert result.program_id == "prog_1"
+
+
+def test_webhooks_use_current_contract() -> None:
+    client = AgentRef(api_key="ak_live_test")
+
+    with respx.mock:
+        create_route = respx.post("https://www.agentref.dev/api/v1/webhooks").mock(
+            return_value=httpx.Response(
+                201,
+                json={
+                    "data": {
+                        "endpoint": {
+                            "id": "wh_1",
+                            "name": "Primary",
+                            "url": "https://example.com/webhooks",
+                            "status": "active",
+                            "programId": "prog_1",
+                            "schemaVersion": 2,
+                            "subscribedEvents": ["program.created"],
+                            "secretLastFour": "1234",
+                            "createdAt": "2026-01-01T00:00:00Z",
+                            "updatedAt": "2026-01-01T00:00:00Z",
+                            "disabledAt": None,
+                        },
+                        "signingSecret": "whsec_123",
+                    },
+                    "meta": {"requestId": "r"},
+                },
+            )
+        )
+        respx.get("https://www.agentref.dev/api/v1/webhooks").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "data": [
+                        {
+                            "id": "wh_1",
+                            "name": "Primary",
+                            "url": "https://example.com/webhooks",
+                            "status": "active",
+                            "programId": "prog_1",
+                            "schemaVersion": 2,
+                            "subscribedEvents": ["program.created"],
+                            "secretLastFour": "1234",
+                            "createdAt": "2026-01-01T00:00:00Z",
+                            "updatedAt": "2026-01-01T00:00:00Z",
+                            "disabledAt": None,
+                        }
+                    ],
+                    "meta": {"requestId": "r"},
+                },
+            )
+        )
+        respx.patch("https://www.agentref.dev/api/v1/webhooks/wh_1").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "id": "wh_1",
+                        "name": "Renamed",
+                        "url": "https://example.com/webhooks",
+                        "status": "active",
+                        "programId": None,
+                        "schemaVersion": 2,
+                        "subscribedEvents": ["program.updated"],
+                        "secretLastFour": "1234",
+                        "createdAt": "2026-01-01T00:00:00Z",
+                        "updatedAt": "2026-01-02T00:00:00Z",
+                        "disabledAt": None,
+                    },
+                    "meta": {"requestId": "r"},
+                },
+            )
+        )
+        respx.post("https://www.agentref.dev/api/v1/webhooks/wh_1/rotate-secret").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "endpoint": {
+                            "id": "wh_1",
+                            "name": "Renamed",
+                            "url": "https://example.com/webhooks",
+                            "status": "active",
+                            "programId": None,
+                            "schemaVersion": 2,
+                            "subscribedEvents": ["program.updated"],
+                            "secretLastFour": "5678",
+                            "createdAt": "2026-01-01T00:00:00Z",
+                            "updatedAt": "2026-01-02T00:00:00Z",
+                            "disabledAt": None,
+                        },
+                        "signingSecret": "whsec_456",
+                    },
+                    "meta": {"requestId": "r"},
+                },
+            )
+        )
+        respx.delete("https://www.agentref.dev/api/v1/webhooks/wh_1").mock(
+            return_value=httpx.Response(
+                200,
+                json={"data": {"success": True}, "meta": {"requestId": "r"}},
+            )
+        )
+
+        created = client.webhooks.create(
+            name="Primary",
+            url="https://example.com/webhooks",
+            program_id="prog_1",
+            subscribed_events=["program.created"],
+            schema_version=2,
+        )
+        listed = client.webhooks.list(program_id="prog_1")
+        updated = client.webhooks.update(
+            "wh_1",
+            name="Renamed",
+            subscribed_events=["program.updated"],
+            program_id=None,
+            schema_version=2,
+        )
+        rotated = client.webhooks.rotate_secret("wh_1")
+        deleted = client.webhooks.delete("wh_1")
+        create_body = json.loads(create_route.calls[0].request.content)
+
+    assert create_body["programId"] == "prog_1"
+    assert created.signing_secret == "whsec_123"
+    assert listed[0].schema_version == 2
+    assert updated.program_id is None
+    assert rotated.endpoint.secret_last_four == "5678"
+    assert deleted.success is True
 
 
 def test_program_stats_uses_current_contract() -> None:

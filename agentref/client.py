@@ -14,6 +14,7 @@ from .resources import (
     AsyncPayoutInfoResource,
     AsyncPayoutsResource,
     AsyncProgramsResource,
+    AsyncWebhooksResource,
     BillingResource,
     ConversionsResource,
     FlagsResource,
@@ -22,6 +23,7 @@ from .resources import (
     PayoutInfoResource,
     PayoutsResource,
     ProgramsResource,
+    WebhooksResource,
 )
 
 
@@ -50,6 +52,7 @@ class AgentRef:
         self.merchant = MerchantResource(self._http)
         self.notifications = NotificationsResource(self._http)
         self.payout_info = PayoutInfoResource(self._http)
+        self.webhooks = WebhooksResource(self._http)
 
     def close(self) -> None:
         self._http.close()
@@ -82,6 +85,7 @@ class AsyncAgentRef:
         self.merchant = AsyncMerchantResource(self._http)
         self.notifications = AsyncNotificationsResource(self._http)
         self.payout_info = AsyncPayoutInfoResource(self._http)
+        self.webhooks = AsyncWebhooksResource(self._http)
 
     async def __aenter__(self) -> "AsyncAgentRef":
         await self._http.__aenter__()

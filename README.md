@@ -30,18 +30,21 @@ async with AsyncAgentRef(api_key="ak_live_...") as client:
 ## Authentication
 
 - Uses `Authorization: Bearer <key>`.
-- Supports `ak_live_*`, `ak_aff_*`, `ak_onb_*`.
+- Supports `ak_live_*`, `ak_aff_*`.
 - Provide `api_key` directly or set `AGENTREF_API_KEY`.
 
 ## Resources
 
-- `client.programs`: `list`, `list_all`, `get`, `create`, `update`, `delete`, `stats`, `list_affiliates`, `list_coupons`, `create_coupon`, `delete_coupon`, `list_invites`, `create_invite`, `update_marketplace`
+- `client.programs`: `list`, `list_all`, `get`, `create`, `update`, `delete`, `stats`, `list_affiliates`, `list_coupons`, `create_coupon`, `delete_coupon`, `list_invites`, `create_invite`, `update_marketplace`, `connect_stripe`, `disconnect_stripe`, `verify_domain`, `remove_domain_verification`, `get_domain_status`
 - `client.affiliates`: `list`, `get`, `approve`, `block`, `unblock`
 - `client.conversions`: `list`, `stats`, `recent`
 - `client.payouts`: `list`, `list_pending`, `stats`, `create`
 - `client.flags`: `list`, `stats`, `resolve`
 - `client.billing`: `current`, `tiers`, `subscribe`
-- `client.merchant`: `get`, `update`, `connect_stripe`, `domain_status`
+- `client.merchant`: `get`, `update`
+- `client.notifications`: `get`, `update`
+- `client.payout_info`: `get`, `update`
+- `client.webhooks`: `list`, `create`, `get`, `update`, `delete`, `rotate_secret`
 
 ## Pagination
 

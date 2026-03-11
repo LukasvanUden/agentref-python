@@ -5,11 +5,18 @@ from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional
 from .._http import AsyncHttpClient, SyncHttpClient
 from ..types.models import (
     Affiliate,
+    ConnectProgramStripeParams,
+    ConnectProgramStripeResponse,
     Coupon,
+    DisconnectProgramStripeResponse,
     Invite,
     PaginatedResponse,
     Program,
+    ProgramDetail,
+    ProgramDomainVerificationInitResponse,
+    ProgramDomainVerificationStatusResponse,
     ProgramStats,
+    SuccessResponse,
     UpdateProgramMarketplaceParams,
 )
 
@@ -52,9 +59,9 @@ class ProgramsResource:
                 break
             page += 1
 
-    def get(self, id: str) -> Program:
+    def get(self, id: str) -> ProgramDetail:
         envelope = self._http.request("GET", f"/programs/{id}")
-        return Program.model_validate(envelope["data"])
+        return ProgramDetail.model_validate(envelope["data"])
 
     def create(
         self,
@@ -248,6 +255,36 @@ class ProgramsResource:
         data = envelope.get("data", {})
         return data if isinstance(data, dict) else {}
 
+    def connect_stripe(
+        self,
+        id: str,
+        *,
+        method: Optional[Literal["oauth_url", "restricted_key", "fallback_url"]] = None,
+        stripe_account_id: Optional[str] = None,
+    ) -> ConnectProgramStripeResponse:
+        payload = ConnectProgramStripeParams(
+            method=method,
+            stripe_account_id=stripe_account_id,
+        ).model_dump(by_alias=True, exclude_none=True)
+        envelope = self._http.request("POST", f"/programs/{id}/connect-stripe", json=payload or None)
+        return ConnectProgramStripeResponse.model_validate(envelope["data"])
+
+    def disconnect_stripe(self, id: str) -> DisconnectProgramStripeResponse:
+        envelope = self._http.request("DELETE", f"/programs/{id}/connect-stripe")
+        return DisconnectProgramStripeResponse.model_validate(envelope["data"])
+
+    def verify_domain(self, id: str, *, domain: str) -> ProgramDomainVerificationInitResponse:
+        envelope = self._http.request("POST", f"/programs/{id}/verify-domain", json={"domain": domain})
+        return ProgramDomainVerificationInitResponse.model_validate(envelope["data"])
+
+    def remove_domain_verification(self, id: str) -> SuccessResponse:
+        envelope = self._http.request("DELETE", f"/programs/{id}/verify-domain")
+        return SuccessResponse.model_validate(envelope["data"])
+
+    def get_domain_status(self, id: str) -> ProgramDomainVerificationStatusResponse:
+        envelope = self._http.request("GET", f"/programs/{id}/verify-domain/status")
+        return ProgramDomainVerificationStatusResponse.model_validate(envelope["data"])
+
 
 class AsyncProgramsResource:
     def __init__(self, http: AsyncHttpClient) -> None:
@@ -287,9 +324,9 @@ class AsyncProgramsResource:
                 break
             page += 1
 
-    async def get(self, id: str) -> Program:
+    async def get(self, id: str) -> ProgramDetail:
         envelope = await self._http.request("GET", f"/programs/{id}")
-        return Program.model_validate(envelope["data"])
+        return ProgramDetail.model_validate(envelope["data"])
 
     async def create(
         self,
@@ -482,3 +519,33 @@ class AsyncProgramsResource:
         envelope = await self._http.request("PATCH", f"/programs/{id}/marketplace", json=body)
         data = envelope.get("data", {})
         return data if isinstance(data, dict) else {}
+
+    async def connect_stripe(
+        self,
+        id: str,
+        *,
+        method: Optional[Literal["oauth_url", "restricted_key", "fallback_url"]] = None,
+        stripe_account_id: Optional[str] = None,
+    ) -> ConnectProgramStripeResponse:
+        payload = ConnectProgramStripeParams(
+            method=method,
+            stripe_account_id=stripe_account_id,
+        ).model_dump(by_alias=True, exclude_none=True)
+        envelope = await self._http.request("POST", f"/programs/{id}/connect-stripe", json=payload or None)
+        return ConnectProgramStripeResponse.model_validate(envelope["data"])
+
+    async def disconnect_stripe(self, id: str) -> DisconnectProgramStripeResponse:
+        envelope = await self._http.request("DELETE", f"/programs/{id}/connect-stripe")
+        return DisconnectProgramStripeResponse.model_validate(envelope["data"])
+
+    async def verify_domain(self, id: str, *, domain: str) -> ProgramDomainVerificationInitResponse:
+        envelope = await self._http.request("POST", f"/programs/{id}/verify-domain", json={"domain": domain})
+        return ProgramDomainVerificationInitResponse.model_validate(envelope["data"])
+
+    async def remove_domain_verification(self, id: str) -> SuccessResponse:
+        envelope = await self._http.request("DELETE", f"/programs/{id}/verify-domain")
+        return SuccessResponse.model_validate(envelope["data"])
+
+    async def get_domain_status(self, id: str) -> ProgramDomainVerificationStatusResponse:
+        envelope = await self._http.request("GET", f"/programs/{id}/verify-domain/status")
+        return ProgramDomainVerificationStatusResponse.model_validate(envelope["data"])

@@ -36,6 +36,7 @@ class Program(BaseModel):
     name: str
     description: Optional[str] = None
     slug: str
+    website: Optional[str] = None
     landing_page_url: Optional[str] = None
     portal_slug: Optional[str] = None
     status: str
@@ -48,12 +49,26 @@ class Program(BaseModel):
     commission_limit_months: Optional[int] = None
     commission_hold_days: int
     cookie_duration: int
+    tracking_requires_consent: Optional[bool] = None
+    tracking_param_aliases: Optional[List[str]] = None
+    tracking_legacy_metadata_fallback_enabled: Optional[bool] = None
     payout_threshold: int
     currency: str
     auto_approve_affiliates: bool
     terms_url: Optional[str] = None
+    stripe_account_id: Optional[str] = None
+    stripe_connected_at: Optional[str] = None
+    verified_domain: Optional[str] = None
+    domain_verification_token: Optional[str] = None
+    domain_verified_at: Optional[str] = None
     created_at: str
     updated_at: str
+
+
+class ProgramDetail(Program):
+    model_config = _API_CONFIG
+
+    readiness: Literal["setup", "partial", "ready"]
 
 
 class ProgramStats(BaseModel):
@@ -223,13 +238,9 @@ class Merchant(BaseModel):
     id: str
     user_id: str
     company_name: str
-    website: Optional[str] = None
     logo_url: Optional[str] = None
-    stripe_account_id: Optional[str] = None
-    stripe_connected_at: Optional[str] = None
     billing_tier: str
-    stripe_customer_id: Optional[str] = None
-    stripe_subscription_id: Optional[str] = None
+    billing_requirement_status: Literal["not_required", "required", "grace_period", "restricted", "active"]
     payment_status: str
     last_payment_failed_at: Optional[str] = None
     default_cookie_duration: int
@@ -238,10 +249,6 @@ class Merchant(BaseModel):
     tracking_requires_consent: bool
     tracking_param_aliases: List[str]
     tracking_legacy_metadata_fallback_enabled: bool
-    state: str
-    verified_domain: Optional[str] = None
-    domain_verification_token: Optional[str] = None
-    domain_verified_at: Optional[str] = None
     notification_preferences: Optional[Dict[str, bool]] = None
     onboarding_completed: bool
     onboarding_step: int
@@ -253,7 +260,6 @@ class UpdateMerchantParams(BaseModel):
     model_config = _API_CONFIG
 
     company_name: Optional[str] = None
-    website: Optional[str] = None
     logo_url: Optional[str] = None
     timezone: Optional[str] = None
     default_cookie_duration: Optional[int] = None
@@ -263,21 +269,151 @@ class UpdateMerchantParams(BaseModel):
     tracking_legacy_metadata_fallback_enabled: Optional[bool] = None
 
 
-class MerchantDomainStatus(BaseModel):
+class ConnectProgramStripeParams(BaseModel):
     model_config = _API_CONFIG
 
-    status: str
+    method: Optional[Literal["oauth_url", "restricted_key", "fallback_url"]] = None
+    stripe_account_id: Optional[str] = None
+
+
+class ConnectProgramStripeResponse(BaseModel):
+    model_config = _API_CONFIG
+
+    connected: bool
+    method: Literal["oauth_url", "restricted_key", "fallback_url"]
+    program_id: str
+    program_readiness: Optional[Literal["setup", "partial", "ready"]] = None
+    stripe_account_id: Optional[str] = None
+    auth_url: Optional[str] = None
+    message: str
+
+
+class DisconnectProgramStripeResponse(BaseModel):
+    model_config = _API_CONFIG
+
+    success: bool
+    program_id: str
+
+
+class ProgramDomainVerificationInitResponse(BaseModel):
+    model_config = _API_CONFIG
+
+    program_id: str
+    domain: str
+    token: str
+    txt_record: str
+    txt_record_name: str
+    message: str
+
+
+class ProgramDomainVerificationStatusResponse(BaseModel):
+    model_config = _API_CONFIG
+
+    verified: bool
     domain: Optional[str] = None
-    txt_record: Optional[str] = None
     verified_at: Optional[str] = None
-    tracking_mode: str
-    advanced_tracking_enabled: bool
+    program_id: str
+    program_readiness: Literal["setup", "partial", "ready"]
+    message: str
 
 
-class StripeConnectSession(BaseModel):
+class SuccessResponse(BaseModel):
     model_config = _API_CONFIG
 
+    success: bool
+
+
+class WebhookEndpoint(BaseModel):
+    model_config = _API_CONFIG
+
+    id: str
+    name: str
     url: str
+    status: Literal["active", "disabled"]
+    program_id: Optional[str] = None
+    schema_version: Literal[2]
+    subscribed_events: List[
+        Literal[
+            "program.created",
+            "program.updated",
+            "affiliate.joined",
+            "affiliate.approved",
+            "affiliate.blocked",
+            "affiliate.unblocked",
+            "conversion.created",
+            "conversion.refunded",
+            "payout.created",
+            "payout.processing",
+            "payout.completed",
+            "payout.failed",
+            "flag.resolved",
+        ]
+    ]
+    secret_last_four: Optional[str] = None
+    created_at: str
+    updated_at: str
+    disabled_at: Optional[str] = None
+
+
+class CreateWebhookEndpointParams(BaseModel):
+    model_config = _API_CONFIG
+
+    name: str
+    url: str
+    program_id: Optional[str] = None
+    schema_version: Optional[Literal[2]] = None
+    subscribed_events: List[
+        Literal[
+            "program.created",
+            "program.updated",
+            "affiliate.joined",
+            "affiliate.approved",
+            "affiliate.blocked",
+            "affiliate.unblocked",
+            "conversion.created",
+            "conversion.refunded",
+            "payout.created",
+            "payout.processing",
+            "payout.completed",
+            "payout.failed",
+            "flag.resolved",
+        ]
+    ]
+
+
+class UpdateWebhookEndpointParams(BaseModel):
+    model_config = _API_CONFIG
+
+    name: Optional[str] = None
+    url: Optional[str] = None
+    program_id: Optional[str] = None
+    schema_version: Optional[Literal[2]] = None
+    subscribed_events: Optional[
+        List[
+            Literal[
+                "program.created",
+                "program.updated",
+                "affiliate.joined",
+                "affiliate.approved",
+                "affiliate.blocked",
+                "affiliate.unblocked",
+                "conversion.created",
+                "conversion.refunded",
+                "payout.created",
+                "payout.processing",
+                "payout.completed",
+                "payout.failed",
+                "flag.resolved",
+            ]
+        ]
+    ] = None
+
+
+class WebhookSecretResponse(BaseModel):
+    model_config = _API_CONFIG
+
+    endpoint: WebhookEndpoint
+    signing_secret: str
 
 
 class Coupon(BaseModel):
