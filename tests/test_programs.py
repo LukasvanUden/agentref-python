@@ -57,6 +57,7 @@ def test_create_uses_real_field_names() -> None:
             name="Test",
             commission_type="one_time",
             commission_percent=20,
+            website="https://new.agentref.dev",
             cookie_duration=30,
             portal_slug="test-program",
             currency="EUR",
@@ -66,6 +67,7 @@ def test_create_uses_real_field_names() -> None:
 
     assert "commissionType" in body
     assert "commissionPercent" in body
+    assert body["website"] == "https://new.agentref.dev"
     assert "cookieDuration" in body
     assert body["portalSlug"] == "test-program"
     assert body["currency"] == "EUR"

@@ -272,7 +272,7 @@ class UpdateMerchantParams(BaseModel):
 class ConnectProgramStripeParams(BaseModel):
     model_config = _API_CONFIG
 
-    method: Optional[Literal["oauth_url", "restricted_key", "fallback_url"]] = None
+    method: Optional[Literal["oauth_url", "restricted_key"]] = None
     stripe_account_id: Optional[str] = None
 
 
@@ -280,7 +280,7 @@ class ConnectProgramStripeResponse(BaseModel):
     model_config = _API_CONFIG
 
     connected: bool
-    method: Literal["oauth_url", "restricted_key", "fallback_url"]
+    method: Literal["oauth_url", "restricted_key"]
     program_id: str
     program_readiness: Optional[Literal["setup", "partial", "ready"]] = None
     stripe_account_id: Optional[str] = None
