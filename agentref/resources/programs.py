@@ -263,12 +263,10 @@ class ProgramsResource:
         self,
         id: str,
         *,
-        method: Optional[Literal["oauth_url", "restricted_key"]] = None,
-        stripe_account_id: Optional[str] = None,
+        method: Optional[Literal["oauth_url"]] = None,
     ) -> ConnectProgramStripeResponse:
         payload = ConnectProgramStripeParams(
             method=method,
-            stripe_account_id=stripe_account_id,
         ).model_dump(by_alias=True, exclude_none=True)
         envelope = self._http.request("POST", f"/programs/{id}/connect-stripe", json=payload or None)
         return ConnectProgramStripeResponse.model_validate(envelope["data"])
@@ -532,12 +530,10 @@ class AsyncProgramsResource:
         self,
         id: str,
         *,
-        method: Optional[Literal["oauth_url", "restricted_key"]] = None,
-        stripe_account_id: Optional[str] = None,
+        method: Optional[Literal["oauth_url"]] = None,
     ) -> ConnectProgramStripeResponse:
         payload = ConnectProgramStripeParams(
             method=method,
-            stripe_account_id=stripe_account_id,
         ).model_dump(by_alias=True, exclude_none=True)
         envelope = await self._http.request("POST", f"/programs/{id}/connect-stripe", json=payload or None)
         return ConnectProgramStripeResponse.model_validate(envelope["data"])
