@@ -45,7 +45,7 @@ if programs:
         program_id=detail.program_id,
         idempotency_key="create-pricing-link",
     )
-    print(overview.program_count, detail.program_name, link["refCode"])
+    print(overview.program_count, detail.program_name, link["code"])
 ```
 
 ## Authentication

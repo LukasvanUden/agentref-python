@@ -75,7 +75,7 @@ def test_affiliate_workspace_exposes_links_earnings_payouts_clicks_and_identity(
         link_route = respx.post("https://www.agentref.co/api/v1/me/links").mock(
             return_value=httpx.Response(
                 201,
-                json={"data": {"id": "link_1", "refCode": "jane-review"}, "meta": {}},
+                json={"data": {"id": "link_1", "code": "jane-review"}, "meta": {}},
             )
         )
 
@@ -105,7 +105,7 @@ def test_affiliate_workspace_exposes_links_earnings_payouts_clicks_and_identity(
         "custom_slug": "jane-review",
     }
     assert link_route.calls[0].request.url.params["program_id"] == "prog_1"
-    assert link["refCode"] == "jane-review"
+    assert link["code"] == "jane-review"
 
 
 def test_marketing_resources_supports_merchant_and_affiliate_workflows() -> None:
