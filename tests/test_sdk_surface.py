@@ -72,6 +72,40 @@ def test_affiliate_workspace_exposes_links_earnings_payouts_clicks_and_identity(
         clicks_route = respx.get("https://www.agentref.co/api/v1/me/clicks").mock(
             return_value=httpx.Response(200, json={"data": {"totalClicks": 4}, "meta": {}})
         )
+        respx.get("https://www.agentref.co/api/v1/me/programs/prog_1").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "affiliateId": "aff_1",
+                        "programId": "prog_1",
+                        "programName": "Program",
+                        "commissionType": "one_time",
+                        "commissionPercent": 20,
+                        "commissionLimitMonths": None,
+                        "cookieDuration": 30,
+                        "payoutThreshold": 10000,
+                        "payoutFrequency": "monthly",
+                        "currency": "USD",
+                        "allowCustomDestinations": True,
+                        "allowedLandingPages": [{"path": "/pricing", "label": "Pricing"}],
+                        "termsUrl": None,
+                        "code": "jane",
+                        "isApproved": True,
+                        "isBlocked": False,
+                        "taxFormCompleted": False,
+                        "totalClicks": 0,
+                        "totalConversions": 0,
+                        "totalRevenue": 0,
+                        "totalCommission": 0,
+                        "totalPaidOut": 0,
+                        "pendingCommission": 0,
+                        "createdAt": "2026-01-01T00:00:00.000Z",
+                    },
+                    "meta": {},
+                },
+            )
+        )
         link_route = respx.post("https://www.agentref.co/api/v1/me/links").mock(
             return_value=httpx.Response(
                 201,
@@ -84,6 +118,7 @@ def test_affiliate_workspace_exposes_links_earnings_payouts_clicks_and_identity(
         program_earnings = client.affiliate_workspace.list_program_earnings("prog_1")
         payouts = client.affiliate_workspace.list_payouts()
         clicks = client.affiliate_workspace.click_stats(program_id="prog_1")
+        program = client.affiliate_workspace.get_program("prog_1")
         link = client.affiliate_workspace.create_link(
             name="Pricing",
             destination_path="/pricing",
@@ -97,6 +132,8 @@ def test_affiliate_workspace_exposes_links_earnings_payouts_clicks_and_identity(
     assert program_earnings.data[0]["id"] == "earn_1"
     assert payouts.data[0]["id"] == "pay_1"
     assert clicks["totalClicks"] == 4
+    assert program.payout_compliance == {}
+    assert program.allowed_landing_pages[0]["path"] == "/pricing"
     assert clicks_route.calls[0].request.url.params["program_id"] == "prog_1"
     link_body = json.loads(link_route.calls[0].request.content)
     assert link_body == {

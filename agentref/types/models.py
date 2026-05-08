@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 T = TypeVar("T")
@@ -97,7 +97,9 @@ class AffiliateWorkspaceProgramDetail(BaseModel):
     payout_threshold: int
     payout_frequency: str
     currency: str
-    payout_compliance: Dict[str, Any]
+    payout_compliance: Dict[str, Any] = Field(default_factory=dict)
+    allow_custom_destinations: Optional[bool] = None
+    allowed_landing_pages: List[Dict[str, Any]] = Field(default_factory=list)
     terms_url: Optional[str] = None
     code: str
     is_approved: bool
