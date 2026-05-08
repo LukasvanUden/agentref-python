@@ -8,6 +8,7 @@ from pydantic.alias_generators import to_camel
 T = TypeVar("T")
 
 _API_CONFIG = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+_FLEX_API_CONFIG = ConfigDict(alias_generator=to_camel, populate_by_name=True, extra="allow")
 
 
 class PaginationMeta(BaseModel):
@@ -28,6 +29,106 @@ class PaginatedResponse(BaseModel, Generic[T]):
     meta: PaginationMeta
 
 
+class AffiliateWorkspaceOverviewProgramStats(BaseModel):
+    model_config = _API_CONFIG
+
+    program_id: str
+    program_name: str
+    total_clicks: int
+    total_conversions: int
+    total_revenue: float
+    total_commission: float
+    total_paid_out: float
+
+
+class AffiliateWorkspaceOverview(BaseModel):
+    model_config = _API_CONFIG
+
+    affiliate_profile_id: str
+    program_count: int
+    active_program_count: int
+    total_earnings: float
+    pending_earnings: float
+    available_earnings: float
+    paid_earnings: float
+    program_stats: List[AffiliateWorkspaceOverviewProgramStats]
+
+
+class AffiliateWorkspaceProgram(BaseModel):
+    model_config = _API_CONFIG
+
+    affiliate_id: str
+    program_id: str
+    program_name: str
+    program_description: Optional[str] = None
+    company_name: Optional[str] = None
+    portal_slug: Optional[str] = None
+    portal_theme: Optional[str] = None
+    marketplace_logo_url: Optional[str] = None
+    commission_type: str
+    commission_percent: float
+    code: str
+    is_approved: bool
+    is_blocked: bool
+    total_clicks: int
+    total_conversions: int
+    total_revenue: float
+    total_commission: float
+    total_paid_out: float
+    created_at: str
+
+
+class AffiliateWorkspaceProgramDetail(BaseModel):
+    model_config = _API_CONFIG
+
+    affiliate_id: str
+    program_id: str
+    program_name: str
+    program_description: Optional[str] = None
+    merchant_company_name: Optional[str] = None
+    portal_theme: Optional[str] = None
+    marketplace_logo_url: Optional[str] = None
+    website: Optional[str] = None
+    landing_page_url: Optional[str] = None
+    commission_type: str
+    commission_percent: float
+    commission_limit_months: Optional[int] = None
+    cookie_duration: int
+    payout_threshold: int
+    payout_frequency: str
+    currency: str
+    payout_compliance: Dict[str, Any]
+    terms_url: Optional[str] = None
+    code: str
+    is_approved: bool
+    is_blocked: bool
+    payout_method: Optional[str] = None
+    paypal_email: Optional[str] = None
+    bank_account_holder: Optional[str] = None
+    bank_iban: Optional[str] = None
+    bank_bic: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    company_name: Optional[str] = None
+    address_line_1: Optional[str] = None
+    address_line_2: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: Optional[str] = None
+    vat_id: Optional[str] = None
+    tax_id_type: Optional[str] = None
+    tax_id: Optional[str] = None
+    tax_form_completed: bool
+    total_clicks: int
+    total_conversions: int
+    total_revenue: float
+    total_commission: float
+    total_paid_out: float
+    pending_commission: float
+    created_at: str
+
+
 class Program(BaseModel):
     model_config = _API_CONFIG
 
@@ -41,6 +142,7 @@ class Program(BaseModel):
     portal_slug: Optional[str] = None
     status: str
     marketplace_status: str
+    application_access: Optional[str] = None
     marketplace_category: Optional[str] = None
     marketplace_description: Optional[str] = None
     marketplace_logo_url: Optional[str] = None
@@ -51,16 +153,12 @@ class Program(BaseModel):
     cookie_duration: int
     tracking_requires_consent: Optional[bool] = None
     tracking_param_aliases: Optional[List[str]] = None
-    tracking_legacy_metadata_fallback_enabled: Optional[bool] = None
     payout_threshold: int
     currency: str
     auto_approve_affiliates: bool
     terms_url: Optional[str] = None
     stripe_account_id: Optional[str] = None
     stripe_connected_at: Optional[str] = None
-    verified_domain: Optional[str] = None
-    domain_verification_token: Optional[str] = None
-    domain_verified_at: Optional[str] = None
     created_at: str
     updated_at: str
 
@@ -88,10 +186,17 @@ class ProgramStats(BaseModel):
 class UpdateProgramMarketplaceParams(BaseModel):
     model_config = _API_CONFIG
 
-    status: Optional[Literal["private", "pending", "public"]] = None
+    status: Optional[Literal["private", "draft", "public"]] = None
     category: Optional[str] = None
     description: Optional[str] = None
     logo_url: Optional[str] = None
+
+
+class Application(BaseModel):
+    model_config = _FLEX_API_CONFIG
+
+    id: str
+    status: Optional[Literal["pending", "approved", "declined", "withdrawn", "blocked"]] = None
 
 
 class Affiliate(BaseModel):
@@ -116,7 +221,7 @@ class Conversion(BaseModel):
     program_id: str
     amount: float
     commission: float
-    status: str
+    status: Literal["pending", "approved", "partially_refunded", "rejected", "refunded"]
     method: str
     stripe_session_id: Optional[str] = None
     created_at: str
@@ -248,7 +353,6 @@ class Merchant(BaseModel):
     timezone: str
     tracking_requires_consent: bool
     tracking_param_aliases: List[str]
-    tracking_legacy_metadata_fallback_enabled: bool
     notification_preferences: Optional[Dict[str, bool]] = None
     onboarding_completed: bool
     onboarding_step: int
@@ -266,7 +370,6 @@ class UpdateMerchantParams(BaseModel):
     default_payout_threshold: Optional[int] = None
     tracking_requires_consent: Optional[bool] = None
     tracking_param_aliases: Optional[List[str]] = None
-    tracking_legacy_metadata_fallback_enabled: Optional[bool] = None
 
 
 class ConnectProgramStripeParams(BaseModel):
@@ -291,28 +394,6 @@ class DisconnectProgramStripeResponse(BaseModel):
 
     success: bool
     program_id: str
-
-
-class ProgramDomainVerificationInitResponse(BaseModel):
-    model_config = _API_CONFIG
-
-    program_id: str
-    domain: str
-    token: str
-    txt_record: str
-    txt_record_name: str
-    message: str
-
-
-class ProgramDomainVerificationStatusResponse(BaseModel):
-    model_config = _API_CONFIG
-
-    verified: bool
-    domain: Optional[str] = None
-    verified_at: Optional[str] = None
-    program_id: str
-    program_readiness: Literal["setup", "partial", "ready"]
-    message: str
 
 
 class SuccessResponse(BaseModel):

@@ -4,25 +4,39 @@ from typing import Any, Optional
 
 from ._http import AsyncHttpClient, SyncHttpClient
 from .resources import (
+    AffiliateWorkspaceResource,
     AffiliatesResource,
+    AsyncAffiliateWorkspaceResource,
     AsyncAffiliatesResource,
+    AsyncApplicationsResource,
     AsyncBillingResource,
     AsyncConversionsResource,
     AsyncFlagsResource,
+    AsyncInvitesResource,
+    AsyncMarketplaceResource,
+    AsyncMarketingResourcesResource,
     AsyncMerchantResource,
     AsyncNotificationsResource,
+    AsyncOnboardingResource,
     AsyncPayoutInfoResource,
     AsyncPayoutsResource,
     AsyncProgramsResource,
+    AsyncTrackingResource,
     AsyncWebhooksResource,
+    ApplicationsResource,
     BillingResource,
     ConversionsResource,
     FlagsResource,
+    InvitesResource,
+    MarketplaceResource,
+    MarketingResourcesResource,
     MerchantResource,
     NotificationsResource,
+    OnboardingResource,
     PayoutInfoResource,
     PayoutsResource,
     ProgramsResource,
+    TrackingResource,
     WebhooksResource,
 )
 
@@ -32,7 +46,7 @@ class AgentRef:
         self,
         api_key: Optional[str] = None,
         *,
-        base_url: str = "https://www.agentref.dev/api/v1",
+        base_url: str = "https://www.agentref.co/api/v1",
         timeout: float = 30.0,
         max_retries: int = 2,
     ) -> None:
@@ -43,6 +57,8 @@ class AgentRef:
             max_retries=max_retries,
         )
 
+        self.affiliate_workspace = AffiliateWorkspaceResource(self._http)
+        self.applications = ApplicationsResource(self._http)
         self.programs = ProgramsResource(self._http)
         self.affiliates = AffiliatesResource(self._http)
         self.conversions = ConversionsResource(self._http)
@@ -50,6 +66,11 @@ class AgentRef:
         self.flags = FlagsResource(self._http)
         self.billing = BillingResource(self._http)
         self.merchant = MerchantResource(self._http)
+        self.invites = InvitesResource(self._http)
+        self.marketplace = MarketplaceResource(self._http)
+        self.marketing_resources = MarketingResourcesResource(self._http)
+        self.onboarding = OnboardingResource(self._http)
+        self.tracking = TrackingResource(self._http)
         self.notifications = NotificationsResource(self._http)
         self.payout_info = PayoutInfoResource(self._http)
         self.webhooks = WebhooksResource(self._http)
@@ -65,7 +86,7 @@ class AsyncAgentRef:
         self,
         api_key: Optional[str] = None,
         *,
-        base_url: str = "https://www.agentref.dev/api/v1",
+        base_url: str = "https://www.agentref.co/api/v1",
         timeout: float = 30.0,
         max_retries: int = 2,
     ) -> None:
@@ -76,6 +97,8 @@ class AsyncAgentRef:
             max_retries=max_retries,
         )
 
+        self.affiliate_workspace = AsyncAffiliateWorkspaceResource(self._http)
+        self.applications = AsyncApplicationsResource(self._http)
         self.programs = AsyncProgramsResource(self._http)
         self.affiliates = AsyncAffiliatesResource(self._http)
         self.conversions = AsyncConversionsResource(self._http)
@@ -83,6 +106,11 @@ class AsyncAgentRef:
         self.flags = AsyncFlagsResource(self._http)
         self.billing = AsyncBillingResource(self._http)
         self.merchant = AsyncMerchantResource(self._http)
+        self.invites = AsyncInvitesResource(self._http)
+        self.marketplace = AsyncMarketplaceResource(self._http)
+        self.marketing_resources = AsyncMarketingResourcesResource(self._http)
+        self.onboarding = AsyncOnboardingResource(self._http)
+        self.tracking = AsyncTrackingResource(self._http)
         self.notifications = AsyncNotificationsResource(self._http)
         self.payout_info = AsyncPayoutInfoResource(self._http)
         self.webhooks = AsyncWebhooksResource(self._http)

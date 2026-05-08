@@ -21,7 +21,7 @@ from .errors import (
 )
 
 _SAFE_METHODS: Set[str] = {"GET", "HEAD"}
-_DEFAULT_BASE_URL = "https://www.agentref.dev/api/v1"
+_DEFAULT_BASE_URL = "https://www.agentref.co/api/v1"
 _DEFAULT_TIMEOUT = 30.0
 _DEFAULT_MAX_RETRIES = 2
 

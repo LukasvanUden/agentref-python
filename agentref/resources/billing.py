@@ -24,7 +24,7 @@ class BillingResource:
     def subscribe(
         self,
         *,
-        tier: Literal["starter", "growth", "pro", "scale"],
+        tier: Literal["starter", "growth", "pro"],
         idempotency_key: Optional[str] = None,
     ) -> BillingStatus:
         envelope = self._http.request(
@@ -54,7 +54,7 @@ class AsyncBillingResource:
     async def subscribe(
         self,
         *,
-        tier: Literal["starter", "growth", "pro", "scale"],
+        tier: Literal["starter", "growth", "pro"],
         idempotency_key: Optional[str] = None,
     ) -> BillingStatus:
         envelope = await self._http.request(

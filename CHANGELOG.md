@@ -2,10 +2,22 @@
 
 ## Unreleased
 
-- Removed obsolete merchant-scoped integration methods from the active SDK surface.
-- Aligned `merchant.get()` / `merchant.update()` models with the final merchant profile contract.
-- Added program-scoped integration methods on `programs`: Stripe connect/disconnect and domain verification/status/removal.
-- Added `webhooks` resource for sync and async clients.
+- No unreleased changes.
+
+## 5.1.0
+
+- Added full REST SDK coverage for Applications, Marketing Resources, Onboarding, Tracking, public Invites, Marketplace discovery/application, and the expanded Affiliate Workspace.
+- Kept sync and async clients in parity for the new resource namespaces.
+- Updated affiliate link creation to use `destination_path` plus optional `custom_slug`.
+- Moved application review to `client.applications.approve/decline/block` and removed the stale affiliate approval helper from the active contract.
+- Updated marketplace status types from `pending` to `draft` and added `partially_refunded` conversion status support.
+- Updated README to document the complete v5.1.0 resource surface.
+
+## 5.0.2
+
+- Switched the default API host to `https://www.agentref.co/api/v1`.
+- Removed stale domain-verification expectations and legacy tracking fallback fields from the public SDK contract.
+- Updated tests and README to match the active API surface and supported key prefixes.
 
 ## 1.0.4
 

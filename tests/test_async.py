@@ -8,7 +8,7 @@ from agentref import AsyncAgentRef
 @pytest.mark.asyncio
 async def test_async_client_programs_list() -> None:
     with respx.mock:
-        respx.get("https://www.agentref.dev/api/v1/programs").return_value = httpx.Response(
+        respx.get("https://www.agentref.co/api/v1/programs").return_value = httpx.Response(
             200,
             json={
                 "data": [],
@@ -32,7 +32,7 @@ async def test_async_client_programs_list() -> None:
 @pytest.mark.asyncio
 async def test_async_list_all_stops_on_has_more_false() -> None:
     with respx.mock:
-        respx.get("https://www.agentref.dev/api/v1/programs").mock(
+        respx.get("https://www.agentref.co/api/v1/programs").mock(
             side_effect=[
                 httpx.Response(
                     200,
@@ -126,7 +126,7 @@ async def test_async_list_all_stops_on_has_more_false() -> None:
 @pytest.mark.asyncio
 async def test_async_webhooks_list_uses_current_contract() -> None:
     with respx.mock:
-        respx.get("https://www.agentref.dev/api/v1/webhooks").return_value = httpx.Response(
+        respx.get("https://www.agentref.co/api/v1/webhooks").return_value = httpx.Response(
             200,
             json={
                 "data": [

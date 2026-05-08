@@ -7,7 +7,8 @@ from ..types.models import Affiliate, PaginatedResponse
 
 _SORT_BY = Literal["createdAt", "totalClicks", "totalRevenue", "name"]
 _SORT_ORDER = Literal["asc", "desc"]
-_STATUS = Literal["approved", "pending", "blocked"]
+_STATUS = Literal["approved", "blocked"]
+_SOURCE = Literal["browser", "api", "mcp", "invite", "import"]
 
 
 class AffiliatesResource:
@@ -23,6 +24,7 @@ class AffiliatesResource:
         sort_by: Optional[_SORT_BY] = None,
         sort_order: Optional[_SORT_ORDER] = None,
         status: Optional[_STATUS] = None,
+        source: Optional[_SOURCE] = None,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
         page: Optional[int] = None,
@@ -39,6 +41,7 @@ class AffiliatesResource:
                 "sortBy": sort_by,
                 "sortOrder": sort_order,
                 "status": status,
+                "source": source,
                 "cursor": cursor,
                 "limit": limit,
                 "page": page,
@@ -51,10 +54,6 @@ class AffiliatesResource:
     def get(self, id: str, *, include: Optional[str] = None) -> Affiliate:
         params = {"include": include} if include else None
         envelope = self._http.request("GET", f"/affiliates/{id}", params=params)
-        return Affiliate.model_validate(envelope["data"])
-
-    def approve(self, id: str, *, idempotency_key: Optional[str] = None) -> Affiliate:
-        envelope = self._http.request("POST", f"/affiliates/{id}/approve", idempotency_key=idempotency_key)
         return Affiliate.model_validate(envelope["data"])
 
     def block(
@@ -90,6 +89,7 @@ class AsyncAffiliatesResource:
         sort_by: Optional[_SORT_BY] = None,
         sort_order: Optional[_SORT_ORDER] = None,
         status: Optional[_STATUS] = None,
+        source: Optional[_SOURCE] = None,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
         page: Optional[int] = None,
@@ -106,6 +106,7 @@ class AsyncAffiliatesResource:
                 "sortBy": sort_by,
                 "sortOrder": sort_order,
                 "status": status,
+                "source": source,
                 "cursor": cursor,
                 "limit": limit,
                 "page": page,
@@ -118,10 +119,6 @@ class AsyncAffiliatesResource:
     async def get(self, id: str, *, include: Optional[str] = None) -> Affiliate:
         params = {"include": include} if include else None
         envelope = await self._http.request("GET", f"/affiliates/{id}", params=params)
-        return Affiliate.model_validate(envelope["data"])
-
-    async def approve(self, id: str, *, idempotency_key: Optional[str] = None) -> Affiliate:
-        envelope = await self._http.request("POST", f"/affiliates/{id}/approve", idempotency_key=idempotency_key)
         return Affiliate.model_validate(envelope["data"])
 
     async def block(

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agentref"
-version = "5.0.1"
+version = "5.1.0"
 description = "Official Python SDK for the AgentRef Affiliate API"
 authors = [{ name = "AgentRef", email = "hi@agentref.dev" }]
 license = { text = "MIT" }
@@ -33,3 +33,12 @@ python_version = "3.9"
 
 [tool.hatch.build.targets.wheel]
 packages = ["agentref"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/.venv",
+  "/.venv-publish",
+  "/.mypy_cache",
+  "/.pytest_cache",
+  "/dist",
+]

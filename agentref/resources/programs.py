@@ -13,10 +13,7 @@ from ..types.models import (
     PaginatedResponse,
     Program,
     ProgramDetail,
-    ProgramDomainVerificationInitResponse,
-    ProgramDomainVerificationStatusResponse,
     ProgramStats,
-    SuccessResponse,
     UpdateProgramMarketplaceParams,
 )
 
@@ -78,6 +75,11 @@ class ProgramsResource:
         commission_limit_months: Optional[int] = None,
         portal_slug: Optional[str] = None,
         currency: Optional[str] = None,
+        marketplace_status: Optional[Literal["private", "draft", "public"]] = None,
+        application_access: Optional[Literal["open", "invite_only"]] = None,
+        marketplace_category: Optional[str] = None,
+        marketplace_description: Optional[str] = None,
+        marketplace_logo_url: Optional[str] = None,
         idempotency_key: Optional[str] = None,
     ) -> Program:
         body: Dict[str, Any] = {
@@ -93,6 +95,11 @@ class ProgramsResource:
             "commissionLimitMonths": commission_limit_months,
             "portalSlug": portal_slug,
             "currency": currency,
+            "marketplaceStatus": marketplace_status,
+            "applicationAccess": application_access,
+            "marketplaceCategory": marketplace_category,
+            "marketplaceDescription": marketplace_description,
+            "marketplaceLogoUrl": marketplace_logo_url,
         }
         envelope = self._http.request(
             "POST",
@@ -119,6 +126,11 @@ class ProgramsResource:
         commission_limit_months: Optional[int] = None,
         portal_slug: Optional[str] = None,
         currency: Optional[str] = None,
+        marketplace_status: Optional[Literal["private", "draft", "public"]] = None,
+        application_access: Optional[Literal["open", "invite_only"]] = None,
+        marketplace_category: Optional[str] = None,
+        marketplace_description: Optional[str] = None,
+        marketplace_logo_url: Optional[str] = None,
     ) -> Program:
         body: Dict[str, Any] = {
             "name": name,
@@ -134,6 +146,11 @@ class ProgramsResource:
             "commissionLimitMonths": commission_limit_months,
             "portalSlug": portal_slug,
             "currency": currency,
+            "marketplaceStatus": marketplace_status,
+            "applicationAccess": application_access,
+            "marketplaceCategory": marketplace_category,
+            "marketplaceDescription": marketplace_description,
+            "marketplaceLogoUrl": marketplace_logo_url,
         }
         envelope = self._http.request("PATCH", f"/programs/{id}", json={k: v for k, v in body.items() if v is not None})
         return Program.model_validate(envelope["data"])
@@ -154,6 +171,7 @@ class ProgramsResource:
         id: str,
         *,
         include_blocked: Optional[bool] = None,
+        source: Optional[Literal["browser", "api", "mcp", "invite", "import"]] = None,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
         page: Optional[int] = None,
@@ -165,6 +183,7 @@ class ProgramsResource:
             f"/programs/{id}/affiliates",
             params={
                 "includeBlocked": include_blocked,
+                "source": source,
                 "cursor": cursor,
                 "limit": limit,
                 "page": page,
@@ -244,7 +263,7 @@ class ProgramsResource:
         self,
         id: str,
         *,
-        status: Optional[Literal["private", "pending", "public"]] = None,
+        status: Optional[Literal["private", "draft", "public"]] = None,
         category: Optional[str] = None,
         description: Optional[str] = None,
         logo_url: Optional[str] = None,
@@ -274,18 +293,6 @@ class ProgramsResource:
     def disconnect_stripe(self, id: str) -> DisconnectProgramStripeResponse:
         envelope = self._http.request("DELETE", f"/programs/{id}/connect-stripe")
         return DisconnectProgramStripeResponse.model_validate(envelope["data"])
-
-    def verify_domain(self, id: str, *, domain: str) -> ProgramDomainVerificationInitResponse:
-        envelope = self._http.request("POST", f"/programs/{id}/verify-domain", json={"domain": domain})
-        return ProgramDomainVerificationInitResponse.model_validate(envelope["data"])
-
-    def remove_domain_verification(self, id: str) -> SuccessResponse:
-        envelope = self._http.request("DELETE", f"/programs/{id}/verify-domain")
-        return SuccessResponse.model_validate(envelope["data"])
-
-    def get_domain_status(self, id: str) -> ProgramDomainVerificationStatusResponse:
-        envelope = self._http.request("GET", f"/programs/{id}/verify-domain/status")
-        return ProgramDomainVerificationStatusResponse.model_validate(envelope["data"])
 
 
 class AsyncProgramsResource:
@@ -345,6 +352,11 @@ class AsyncProgramsResource:
         commission_limit_months: Optional[int] = None,
         portal_slug: Optional[str] = None,
         currency: Optional[str] = None,
+        marketplace_status: Optional[Literal["private", "draft", "public"]] = None,
+        application_access: Optional[Literal["open", "invite_only"]] = None,
+        marketplace_category: Optional[str] = None,
+        marketplace_description: Optional[str] = None,
+        marketplace_logo_url: Optional[str] = None,
         idempotency_key: Optional[str] = None,
     ) -> Program:
         body: Dict[str, Any] = {
@@ -360,6 +372,11 @@ class AsyncProgramsResource:
             "commissionLimitMonths": commission_limit_months,
             "portalSlug": portal_slug,
             "currency": currency,
+            "marketplaceStatus": marketplace_status,
+            "applicationAccess": application_access,
+            "marketplaceCategory": marketplace_category,
+            "marketplaceDescription": marketplace_description,
+            "marketplaceLogoUrl": marketplace_logo_url,
         }
         envelope = await self._http.request(
             "POST",
@@ -386,6 +403,11 @@ class AsyncProgramsResource:
         commission_limit_months: Optional[int] = None,
         portal_slug: Optional[str] = None,
         currency: Optional[str] = None,
+        marketplace_status: Optional[Literal["private", "draft", "public"]] = None,
+        application_access: Optional[Literal["open", "invite_only"]] = None,
+        marketplace_category: Optional[str] = None,
+        marketplace_description: Optional[str] = None,
+        marketplace_logo_url: Optional[str] = None,
     ) -> Program:
         body: Dict[str, Any] = {
             "name": name,
@@ -401,6 +423,11 @@ class AsyncProgramsResource:
             "commissionLimitMonths": commission_limit_months,
             "portalSlug": portal_slug,
             "currency": currency,
+            "marketplaceStatus": marketplace_status,
+            "applicationAccess": application_access,
+            "marketplaceCategory": marketplace_category,
+            "marketplaceDescription": marketplace_description,
+            "marketplaceLogoUrl": marketplace_logo_url,
         }
         envelope = await self._http.request("PATCH", f"/programs/{id}", json={k: v for k, v in body.items() if v is not None})
         return Program.model_validate(envelope["data"])
@@ -421,6 +448,7 @@ class AsyncProgramsResource:
         id: str,
         *,
         include_blocked: Optional[bool] = None,
+        source: Optional[Literal["browser", "api", "mcp", "invite", "import"]] = None,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
         page: Optional[int] = None,
@@ -432,6 +460,7 @@ class AsyncProgramsResource:
             f"/programs/{id}/affiliates",
             params={
                 "includeBlocked": include_blocked,
+                "source": source,
                 "cursor": cursor,
                 "limit": limit,
                 "page": page,
@@ -511,7 +540,7 @@ class AsyncProgramsResource:
         self,
         id: str,
         *,
-        status: Optional[Literal["private", "pending", "public"]] = None,
+        status: Optional[Literal["private", "draft", "public"]] = None,
         category: Optional[str] = None,
         description: Optional[str] = None,
         logo_url: Optional[str] = None,
@@ -541,15 +570,3 @@ class AsyncProgramsResource:
     async def disconnect_stripe(self, id: str) -> DisconnectProgramStripeResponse:
         envelope = await self._http.request("DELETE", f"/programs/{id}/connect-stripe")
         return DisconnectProgramStripeResponse.model_validate(envelope["data"])
-
-    async def verify_domain(self, id: str, *, domain: str) -> ProgramDomainVerificationInitResponse:
-        envelope = await self._http.request("POST", f"/programs/{id}/verify-domain", json={"domain": domain})
-        return ProgramDomainVerificationInitResponse.model_validate(envelope["data"])
-
-    async def remove_domain_verification(self, id: str) -> SuccessResponse:
-        envelope = await self._http.request("DELETE", f"/programs/{id}/verify-domain")
-        return SuccessResponse.model_validate(envelope["data"])
-
-    async def get_domain_status(self, id: str) -> ProgramDomainVerificationStatusResponse:
-        envelope = await self._http.request("GET", f"/programs/{id}/verify-domain/status")
-        return ProgramDomainVerificationStatusResponse.model_validate(envelope["data"])

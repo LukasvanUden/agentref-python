@@ -30,16 +30,12 @@ def _mock_program() -> dict:
         "cookieDuration": 30,
         "trackingRequiresConsent": False,
         "trackingParamAliases": ["ref"],
-        "trackingLegacyMetadataFallbackEnabled": True,
         "payoutThreshold": 5000,
         "currency": "USD",
         "autoApproveAffiliates": True,
         "termsUrl": None,
         "stripeAccountId": None,
         "stripeConnectedAt": None,
-        "verifiedDomain": None,
-        "domainVerificationToken": None,
-        "domainVerifiedAt": None,
         "createdAt": "2026-01-01T00:00:00Z",
         "updatedAt": "2026-01-01T00:00:00Z",
     }
@@ -49,7 +45,7 @@ def test_create_uses_real_field_names() -> None:
     client = AgentRef(api_key="ak_live_test")
 
     with respx.mock:
-        route = respx.post("https://www.agentref.dev/api/v1/programs").mock(
+        route = respx.post("https://www.agentref.co/api/v1/programs").mock(
             return_value=httpx.Response(201, json={"data": _mock_program(), "meta": {"requestId": "r"}})
         )
 
@@ -79,7 +75,7 @@ def test_list_all_stops_on_has_more_false() -> None:
     client = AgentRef(api_key="ak_live_test")
 
     with respx.mock:
-        respx.get("https://www.agentref.dev/api/v1/programs").mock(
+        respx.get("https://www.agentref.co/api/v1/programs").mock(
             side_effect=[
                 httpx.Response(
                     200,
@@ -109,7 +105,7 @@ def test_program_get_returns_program_detail() -> None:
     client = AgentRef(api_key="ak_live_test")
 
     with respx.mock:
-        respx.get("https://www.agentref.dev/api/v1/programs/prog_1").mock(
+        respx.get("https://www.agentref.co/api/v1/programs/prog_1").mock(
             return_value=httpx.Response(
                 200,
                 json={"data": {**_mock_program(), "readiness": "ready"}, "meta": {"requestId": "r"}},
@@ -126,7 +122,7 @@ def test_flags_resolve_sends_block_affiliate_true() -> None:
     client = AgentRef(api_key="ak_live_test")
 
     with respx.mock:
-        route = respx.post("https://www.agentref.dev/api/v1/flags/flag_1/resolve").mock(
+        route = respx.post("https://www.agentref.co/api/v1/flags/flag_1/resolve").mock(
             return_value=httpx.Response(
                 200,
                 json={
@@ -163,7 +159,7 @@ def test_list_invites_returns_typed_invites() -> None:
     client = AgentRef(api_key="ak_live_test")
 
     with respx.mock:
-        respx.get("https://www.agentref.dev/api/v1/programs/prog_1/invites").mock(
+        respx.get("https://www.agentref.co/api/v1/programs/prog_1/invites").mock(
             return_value=httpx.Response(
                 200,
                 json={
@@ -188,12 +184,12 @@ def test_update_marketplace_uses_camel_case_payload() -> None:
     client = AgentRef(api_key="ak_live_test")
 
     with respx.mock:
-        route = respx.patch("https://www.agentref.dev/api/v1/programs/prog_1/marketplace").mock(
-            return_value=httpx.Response(200, json={"data": {"status": "pending"}, "meta": {"requestId": "r"}})
+        route = respx.patch("https://www.agentref.co/api/v1/programs/prog_1/marketplace").mock(
+            return_value=httpx.Response(200, json={"data": {"status": "draft"}, "meta": {"requestId": "r"}})
         )
-        client.programs.update_marketplace("prog_1", status="pending", logo_url="https://cdn.example.com/logo.png")
+        client.programs.update_marketplace("prog_1", status="draft", logo_url="https://cdn.example.com/logo.png")
         body = json.loads(route.calls[0].request.content)
-    assert body["status"] == "pending"
+    assert body["status"] == "draft"
     assert body["logoUrl"] == "https://cdn.example.com/logo.png"
 
 
@@ -201,7 +197,7 @@ def test_payouts_create_sends_idempotency_and_body() -> None:
     client = AgentRef(api_key="ak_live_test")
 
     with respx.mock:
-        route = respx.post("https://www.agentref.dev/api/v1/payouts").mock(
+        route = respx.post("https://www.agentref.co/api/v1/payouts").mock(
             return_value=httpx.Response(201, json={"data": {"id": "pay_1"}, "meta": {"requestId": "r"}})
         )
         client.payouts.create(
@@ -222,7 +218,7 @@ def test_merchant_update_uses_current_contract() -> None:
     client = AgentRef(api_key="ak_live_test")
 
     with respx.mock:
-        update_route = respx.patch("https://www.agentref.dev/api/v1/merchant").mock(
+        update_route = respx.patch("https://www.agentref.co/api/v1/merchant").mock(
             return_value=httpx.Response(
                 200,
                 json={
@@ -240,7 +236,6 @@ def test_merchant_update_uses_current_contract() -> None:
                         "timezone": "UTC",
                         "trackingRequiresConsent": True,
                         "trackingParamAliases": ["ref", "partner"],
-                        "trackingLegacyMetadataFallbackEnabled": True,
                         "notificationPreferences": {"newAffiliate": True},
                         "onboardingCompleted": True,
                         "onboardingStep": 4,
@@ -271,7 +266,7 @@ def test_program_connects_stripe_via_program_scope() -> None:
     client = AgentRef(api_key="ak_live_test")
 
     with respx.mock:
-        route = respx.post("https://www.agentref.dev/api/v1/programs/prog_1/connect-stripe").mock(
+        route = respx.post("https://www.agentref.co/api/v1/programs/prog_1/connect-stripe").mock(
             return_value=httpx.Response(
                 200,
                 json={
@@ -295,63 +290,11 @@ def test_program_connects_stripe_via_program_scope() -> None:
     assert connect.auth_url == "https://connect.stripe.com/oauth/authorize"
 
 
-def test_program_domain_methods_use_current_contract() -> None:
-    client = AgentRef(api_key="ak_live_test")
-
-    with respx.mock:
-        respx.post("https://www.agentref.dev/api/v1/programs/prog_1/verify-domain").mock(
-            return_value=httpx.Response(
-                200,
-                json={
-                    "data": {
-                        "programId": "prog_1",
-                        "domain": "agentref.dev",
-                        "token": "verify_me",
-                        "txtRecord": "verify_me",
-                        "txtRecordName": "_agentref.agentref.dev",
-                        "message": "Add the TXT record.",
-                    },
-                    "meta": {"requestId": "r"},
-                },
-            )
-        )
-        respx.get("https://www.agentref.dev/api/v1/programs/prog_1/verify-domain/status").mock(
-            return_value=httpx.Response(
-                200,
-                json={
-                    "data": {
-                        "verified": True,
-                        "domain": "agentref.dev",
-                        "verifiedAt": "2026-01-01T00:00:00Z",
-                        "programId": "prog_1",
-                        "programReadiness": "ready",
-                        "message": "Domain verified.",
-                    },
-                    "meta": {"requestId": "r"},
-                },
-            )
-        )
-        respx.delete("https://www.agentref.dev/api/v1/programs/prog_1/verify-domain").mock(
-            return_value=httpx.Response(
-                200,
-                json={"data": {"success": True}, "meta": {"requestId": "r"}},
-            )
-        )
-
-        verify = client.programs.verify_domain("prog_1", domain="agentref.dev")
-        status = client.programs.get_domain_status("prog_1")
-        removed = client.programs.remove_domain_verification("prog_1")
-
-    assert verify.txt_record_name == "_agentref.agentref.dev"
-    assert status.program_readiness == "ready"
-    assert removed.success is True
-
-
 def test_program_disconnects_stripe() -> None:
     client = AgentRef(api_key="ak_live_test")
 
     with respx.mock:
-        respx.delete("https://www.agentref.dev/api/v1/programs/prog_1/connect-stripe").mock(
+        respx.delete("https://www.agentref.co/api/v1/programs/prog_1/connect-stripe").mock(
             return_value=httpx.Response(
                 200,
                 json={"data": {"success": True, "programId": "prog_1"}, "meta": {"requestId": "r"}},
@@ -368,7 +311,7 @@ def test_webhooks_use_current_contract() -> None:
     client = AgentRef(api_key="ak_live_test")
 
     with respx.mock:
-        create_route = respx.post("https://www.agentref.dev/api/v1/webhooks").mock(
+        create_route = respx.post("https://www.agentref.co/api/v1/webhooks").mock(
             return_value=httpx.Response(
                 201,
                 json={
@@ -392,7 +335,7 @@ def test_webhooks_use_current_contract() -> None:
                 },
             )
         )
-        respx.get("https://www.agentref.dev/api/v1/webhooks").mock(
+        respx.get("https://www.agentref.co/api/v1/webhooks").mock(
             return_value=httpx.Response(
                 200,
                 json={
@@ -415,7 +358,7 @@ def test_webhooks_use_current_contract() -> None:
                 },
             )
         )
-        respx.patch("https://www.agentref.dev/api/v1/webhooks/wh_1").mock(
+        respx.patch("https://www.agentref.co/api/v1/webhooks/wh_1").mock(
             return_value=httpx.Response(
                 200,
                 json={
@@ -436,7 +379,7 @@ def test_webhooks_use_current_contract() -> None:
                 },
             )
         )
-        respx.post("https://www.agentref.dev/api/v1/webhooks/wh_1/rotate-secret").mock(
+        respx.post("https://www.agentref.co/api/v1/webhooks/wh_1/rotate-secret").mock(
             return_value=httpx.Response(
                 200,
                 json={
@@ -460,7 +403,7 @@ def test_webhooks_use_current_contract() -> None:
                 },
             )
         )
-        respx.delete("https://www.agentref.dev/api/v1/webhooks/wh_1").mock(
+        respx.delete("https://www.agentref.co/api/v1/webhooks/wh_1").mock(
             return_value=httpx.Response(
                 200,
                 json={"data": {"success": True}, "meta": {"requestId": "r"}},
@@ -498,7 +441,7 @@ def test_program_stats_uses_current_contract() -> None:
     client = AgentRef(api_key="ak_live_test")
 
     with respx.mock:
-        respx.get("https://www.agentref.dev/api/v1/programs/prog_1/stats").mock(
+        respx.get("https://www.agentref.co/api/v1/programs/prog_1/stats").mock(
             return_value=httpx.Response(
                 200,
                 json={
@@ -533,7 +476,7 @@ def test_payout_info_supports_bank_fields() -> None:
     client = AgentRef(api_key="ak_live_test")
 
     with respx.mock:
-        get_route = respx.get("https://www.agentref.dev/api/v1/me/payout-info").mock(
+        get_route = respx.get("https://www.agentref.co/api/v1/me/payout-info").mock(
             return_value=httpx.Response(
                 200,
                 json={
@@ -556,7 +499,7 @@ def test_payout_info_supports_bank_fields() -> None:
                 },
             )
         )
-        update_route = respx.patch("https://www.agentref.dev/api/v1/me/payout-info").mock(
+        update_route = respx.patch("https://www.agentref.co/api/v1/me/payout-info").mock(
             return_value=httpx.Response(
                 200,
                 json={

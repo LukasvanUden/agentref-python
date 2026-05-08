@@ -22,7 +22,7 @@ def test_get_retries_on_500() -> None:
                 )
             return httpx.Response(200, json={"data": [], "meta": {"total": 0, "page": 1, "pageSize": 20, "hasMore": False, "requestId": "r"}})
 
-        respx.get("https://www.agentref.dev/api/v1/programs").mock(side_effect=handler)
+        respx.get("https://www.agentref.co/api/v1/programs").mock(side_effect=handler)
         payload = client.request("GET", "/programs")
 
     assert call_count["count"] == 3
@@ -42,7 +42,7 @@ def test_post_no_retry_without_idempotency_key() -> None:
                 json={"error": {"code": "INTERNAL_ERROR"}, "meta": {"requestId": "r"}},
             )
 
-        respx.post("https://www.agentref.dev/api/v1/programs").mock(side_effect=handler)
+        respx.post("https://www.agentref.co/api/v1/programs").mock(side_effect=handler)
 
         with pytest.raises(ServerError):
             client.request("POST", "/programs", json={})
@@ -65,7 +65,7 @@ def test_post_retries_with_idempotency_key() -> None:
                 )
             return httpx.Response(201, json={"data": {"id": "prog_1"}, "meta": {"requestId": "r"}})
 
-        respx.post("https://www.agentref.dev/api/v1/programs").mock(side_effect=handler)
+        respx.post("https://www.agentref.co/api/v1/programs").mock(side_effect=handler)
 
         payload = client.request("POST", "/programs", json={}, idempotency_key="key-123")
 
@@ -86,7 +86,7 @@ def test_post_does_not_retry_with_empty_idempotency_key() -> None:
                 json={"error": {"code": "INTERNAL_ERROR"}, "meta": {"requestId": "r"}},
             )
 
-        respx.post("https://www.agentref.dev/api/v1/programs").mock(side_effect=handler)
+        respx.post("https://www.agentref.co/api/v1/programs").mock(side_effect=handler)
 
         with pytest.raises(ServerError):
             client.request("POST", "/programs", json={}, idempotency_key="")
@@ -107,7 +107,7 @@ def test_patch_no_retry_even_with_idempotency_key() -> None:
                 json={"error": {"code": "INTERNAL_ERROR"}, "meta": {"requestId": "r"}},
             )
 
-        respx.patch("https://www.agentref.dev/api/v1/programs/p1").mock(side_effect=handler)
+        respx.patch("https://www.agentref.co/api/v1/programs/p1").mock(side_effect=handler)
 
         with pytest.raises(ServerError):
             client.request("PATCH", "/programs/p1", json={"name": "x"}, idempotency_key="ignored")
@@ -128,7 +128,7 @@ def test_delete_no_retry() -> None:
                 json={"error": {"code": "INTERNAL_ERROR"}, "meta": {"requestId": "r"}},
             )
 
-        respx.delete("https://www.agentref.dev/api/v1/programs/p1").mock(side_effect=handler)
+        respx.delete("https://www.agentref.co/api/v1/programs/p1").mock(side_effect=handler)
 
         with pytest.raises(ServerError):
             client.request("DELETE", "/programs/p1")
@@ -141,7 +141,7 @@ def test_forbidden_error_on_403() -> None:
     client = SyncHttpClient(api_key="ak_live_test", max_retries=0)
 
     with respx.mock:
-        respx.get("https://www.agentref.dev/api/v1/programs").return_value = httpx.Response(
+        respx.get("https://www.agentref.co/api/v1/programs").return_value = httpx.Response(
             403,
             json={"error": {"code": "FORBIDDEN", "message": "Forbidden"}, "meta": {"requestId": "r"}},
         )
@@ -158,7 +158,7 @@ def test_idempotency_key_sent_as_header() -> None:
     client = SyncHttpClient(api_key="ak_live_test")
 
     with respx.mock:
-        route = respx.post("https://www.agentref.dev/api/v1/programs").mock(
+        route = respx.post("https://www.agentref.co/api/v1/programs").mock(
             return_value=httpx.Response(201, json={"data": {}, "meta": {"requestId": "r"}})
         )
 
@@ -173,7 +173,7 @@ async def test_async_get_smoke() -> None:
     client = AsyncHttpClient(api_key="ak_live_test")
 
     with respx.mock:
-        respx.get("https://www.agentref.dev/api/v1/programs").return_value = httpx.Response(
+        respx.get("https://www.agentref.co/api/v1/programs").return_value = httpx.Response(
             200,
             json={"data": [], "meta": {"total": 0, "page": 1, "pageSize": 20, "hasMore": False, "requestId": "r"}},
         )
