@@ -48,6 +48,8 @@ if programs:
     print(overview.program_count, detail.program_name, link["code"])
 ```
 
+`create_link` uses `destination_path` and `custom_slug`. `update_link` follows the current REST update contract and accepts `name`, `target_url`, and `is_active`.
+
 ## Authentication
 
 - Uses `Authorization: Bearer <key>`.
@@ -93,6 +95,8 @@ client.applications.approve(
 Merchant keys can manage resources. Affiliate keys can list, download, and render
 published resources for joined programs.
 
+The REST SDK supports social posts, social-post media, publish/unpublish/archive/notify actions, and download URLs. Collection creation, external-link creation, generic file upload sessions, and URL import are currently available through Merchant MCP, not through the REST SDK.
+
 ```python
 post = client.marketing_resources.create_social_post(
     "prog-uuid",
@@ -136,7 +140,7 @@ client.marketplace.apply(
 
 ## Pagination
 
-List endpoints return `PaginatedResponse[T]` with:
+Paginated list endpoints return `PaginatedResponse[T]` with:
 
 - `meta.total`
 - `meta.page`
@@ -144,6 +148,8 @@ List endpoints return `PaginatedResponse[T]` with:
 - `meta.has_more`
 - `meta.next_cursor`
 - `meta.request_id`
+
+Some convenience list methods return plain lists because their REST endpoints return array data directly, including `affiliate_workspace.list_programs()`, `affiliate_workspace.list_links()`, `marketing_resources.list()`, `marketing_resources.list_for_affiliate()`, `webhooks.list()`, and `conversions.recent()`.
 
 Auto-pagination (`list_all`) stops on `has_more is False`.
 
